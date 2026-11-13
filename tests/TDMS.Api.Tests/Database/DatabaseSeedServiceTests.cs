@@ -79,6 +79,8 @@ public class DatabaseSeedServiceTests
             .FirstOrDefaultAsync(r => r.Name == "ParentStudent");
         parentStudentRole.Should().NotBeNull();
         parentStudentRole!.RoleClaims.Should().Contain(rc => rc.ClaimType == UIControlNames.NavLearnerAccount);
+        parentStudentRole.RoleClaims.Should().Contain(rc => rc.ClaimType == UIControlNames.NavFindTutors);
+        parentStudentRole.RoleClaims.Should().Contain(rc => rc.ClaimType == UIControlNames.TabReviewsByMe);
         parentStudentRole.RoleClaims.Should().Contain(rc => rc.ClaimType == "tutors:read");
         parentStudentRole.RoleClaims.Should().NotContain(rc => rc.ClaimType == UIControlNames.AdminPanelAccess);
 
@@ -89,6 +91,8 @@ public class DatabaseSeedServiceTests
         tutorRole.Should().NotBeNull();
         tutorRole!.RoleClaims.Should().Contain(rc => rc.ClaimType == UIControlNames.NavTutorStudio);
         tutorRole.RoleClaims.Should().Contain(rc => rc.ClaimType == "subscriptions:select");
+        tutorRole.RoleClaims.Should().NotContain(rc => rc.ClaimType == UIControlNames.NavFindTutors, "Tutors should not have Find Tutors menu claim");
+        tutorRole.RoleClaims.Should().NotContain(rc => rc.ClaimType == UIControlNames.TabReviewsByMe, "Tutors should not have Reviews By Me tab claim");
 
         // Categories & Packages
         var categoryCount = await context.Categories.CountAsync();

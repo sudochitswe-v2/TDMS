@@ -11,8 +11,10 @@ import {
   AlertTriangle,
   Clock,
   ShieldCheck,
-  Cpu
+  Cpu,
+  Tag
 } from 'lucide-react'
+import { CURRENT_APP_VERSION } from '../../lib/version'
 
 interface SystemDataResponse {
   databaseStatus: string
@@ -20,6 +22,8 @@ interface SystemDataResponse {
   firebaseProvider: string
   serverTimeUtc: string
   environment: string
+  appVersion?: string
+  appChannel?: string
 }
 
 interface MaintenanceResponse {
@@ -105,7 +109,28 @@ export const SystemHealthPage: React.FC = () => {
       )}
 
       {/* Diagnostics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        {/* Application Version */}
+        <div className="p-5 rounded-2xl border bg-card space-y-3">
+          <div className="flex items-center justify-between text-muted-foreground">
+            <span className="text-xs font-semibold">Application Version</span>
+            <Tag className="w-4 h-4 text-purple-500" />
+          </div>
+          <div>
+            <div className="flex items-center space-x-2">
+              <p className="text-lg font-bold font-mono text-foreground">
+                v{data?.appVersion || CURRENT_APP_VERSION.raw}
+              </p>
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                {data?.appChannel || CURRENT_APP_VERSION.channel}
+              </span>
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              GitHub Releases Versioning
+            </p>
+          </div>
+        </div>
+
         {/* Database Status */}
         <div className="p-5 rounded-2xl border bg-card space-y-3">
           <div className="flex items-center justify-between text-muted-foreground">

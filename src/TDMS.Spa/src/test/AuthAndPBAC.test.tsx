@@ -26,6 +26,8 @@ const TestConsumer: React.FC<{ targetPermission: string }> = ({ targetPermission
             claims: {
               'inquiries:create': 'true',
               'view:menu:learner_account': 'true',
+              'view:menu:find_tutors': 'true',
+              'view:menu:reviews_by_me': 'true',
             },
             accountSubType: 'Student',
             expiresAt: new Date(Date.now() + 3600000).toISOString(),
@@ -33,6 +35,27 @@ const TestConsumer: React.FC<{ targetPermission: string }> = ({ targetPermission
         }
       >
         Login Learner
+      </button>
+
+      <button
+        onClick={() =>
+          login({
+            token: 'mock-tutor-token',
+            userId: 'tutor-1',
+            email: 'tutor@example.com',
+            fullName: 'Dr. John Tutor',
+            roles: ['Tutor'],
+            claims: {
+              'tutors:update': 'true',
+              'view:menu:tutor_workspace': 'true',
+              'view:menu:feedback': 'true',
+              // Intentionally omits 'view:menu:find_tutors' and 'view:menu:reviews_by_me'
+            },
+            expiresAt: new Date(Date.now() + 3600000).toISOString(),
+          })
+        }
+      >
+        Login Tutor
       </button>
 
       <button
@@ -159,5 +182,76 @@ describe('AuthContext and PBAC Permissions Gate', () => {
     expect(screen.getByTestId('perm-check')).toHaveTextContent('DENIED')
     expect(screen.getByText('FORBIDDEN_FALLBACK')).toBeInTheDocument()
     expect(localStorage.getItem('tdms_token')).toBeNull()
+  })
+
+  it('denies Tutor account view:menu:find_tutors and view:menu:reviews_by_me UI controls', () => {
+    const { unmount } = render(
+      <MemoryRouter>
+        <AuthProvider>
+          <TestConsumer targetPermission="view:menu:find_tutors" />
+        </AuthProvider>
+      </MemoryRouter>
+    )
+
+    act(() => {
+      screen.getByText('Login Tutor').click()
+    })
+
+    expect(screen.getByTestId('auth-status')).toHaveTextContent('LOGGED_IN')
+    expect(screen.getByTestId('perm-check')).toHaveTextContent('DENIED')
+    expect(screen.getByText('FORBIDDEN_FALLBACK')).toBeInTheDocument()
+    expect(screen.queryByText('PROTECTED_CONTENT')).not.toBeInTheDocument()
+
+    unmount()
+
+    render(
+      <MemoryRouter>
+        <AuthProvider>
+          <TestConsumer targetPermission="view:menu:reviews_by_me" />
+        </AuthProvider>
+      </MemoryRouter>
+    )
+
+    act(() => {
+      screen.getByText('Login Tutor').click()
+    })
+
+    expect(screen.getByTestId('perm-check')).toHaveTextContent('DENIED')
+    expect(screen.getByText('FORBIDDEN_FALLBACK')).toBeInTheDocument()
+  })
+
+  it('allows Learner account view:menu:find_tutors and view:menu:reviews_by_me UI controls', () => {
+    const { unmount } = render(
+      <MemoryRouter>
+        <AuthProvider>
+          <TestConsumer targetPermission="view:menu:find_tutors" />
+        </AuthProvider>
+      </MemoryRouter>
+    )
+
+    act(() => {
+      screen.getByText('Login Learner').click()
+    })
+
+    expect(screen.getByTestId('auth-status')).toHaveTextContent('LOGGED_IN')
+    expect(screen.getByTestId('perm-check')).toHaveTextContent('ALLOWED')
+    expect(screen.getByText('PROTECTED_CONTENT')).toBeInTheDocument()
+
+    unmount()
+
+    render(
+      <MemoryRouter>
+        <AuthProvider>
+          <TestConsumer targetPermission="view:menu:reviews_by_me" />
+        </AuthProvider>
+      </MemoryRouter>
+    )
+
+    act(() => {
+      screen.getByText('Login Learner').click()
+    })
+
+    expect(screen.getByTestId('perm-check')).toHaveTextContent('ALLOWED')
+    expect(screen.getByText('PROTECTED_CONTENT')).toBeInTheDocument()
   })
 })

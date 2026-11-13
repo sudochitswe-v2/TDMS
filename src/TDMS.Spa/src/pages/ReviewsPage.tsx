@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/api'
+import { useAuth } from '../context/AuthContext'
 import { Pagination } from '../components/Pagination'
 import { Star, MessageSquare, Edit3, CheckCircle2, AlertCircle } from 'lucide-react'
 
@@ -23,7 +24,19 @@ interface MyReviewsResponse {
 
 export const ReviewsPage: React.FC = () => {
   const queryClient = useQueryClient()
-  const [activeTab, setActiveTab] = useState<'authored' | 'received'>('authored')
+  const { hasPermission } = useAuth()
+  const canViewReviewsByMe = hasPermission('view:menu:reviews_by_me')
+
+  const [activeTab, setActiveTab] = useState<'authored' | 'received'>(() =>
+    canViewReviewsByMe ? 'authored' : 'received'
+  )
+
+  useEffect(() => {
+    if (!canViewReviewsByMe && activeTab === 'authored') {
+      setActiveTab('received')
+    }
+  }, [canViewReviewsByMe, activeTab])
+
   const [authoredPage, setAuthoredPage] = useState(1)
   const [receivedPage, setReceivedPage] = useState(1)
   const [pageSize, setPageSize] = useState(5)
@@ -95,16 +108,18 @@ export const ReviewsPage: React.FC = () => {
 
       {/* Tabs */}
       <div className="flex border-b space-x-4 text-xs sm:text-sm font-semibold overflow-x-auto">
-        <button
-          onClick={() => setActiveTab('authored')}
-          className={`pb-3 transition border-b-2 ${
-            activeTab === 'authored'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          Reviews Given by Me ({authored.length})
-        </button>
+        {canViewReviewsByMe && (
+          <button
+            onClick={() => setActiveTab('authored')}
+            className={`pb-3 transition border-b-2 ${
+              activeTab === 'authored'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Reviews by Me ({authored.length})
+          </button>
+        )}
         <button
           onClick={() => setActiveTab('received')}
           className={`pb-3 transition border-b-2 ${
@@ -118,7 +133,7 @@ export const ReviewsPage: React.FC = () => {
       </div>
 
       {/* Tab Content */}
-      {activeTab === 'authored' ? (
+      {activeTab === 'authored' && canViewReviewsByMe ? (
         <div className="space-y-4">
           {authored.length === 0 ? (
             <div className="p-8 text-center border rounded-2xl bg-card text-xs text-muted-foreground">

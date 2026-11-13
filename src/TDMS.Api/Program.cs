@@ -81,6 +81,13 @@ app.MapReviewEndpoints();
 app.MapOperationEndpoints();
 app.MapAdminEndpoints();
 
+// Public System Versioning endpoint
+app.MapGet("/api/system/version", (IConfiguration configuration) =>
+{
+    var info = TDMS.Api.Abstructions.AppVersion.Parse(configuration["AppVersion"]);
+    return Results.Ok(info);
+});
+
 // SPA fallback routing
 if (Directory.Exists(distPath))
 {

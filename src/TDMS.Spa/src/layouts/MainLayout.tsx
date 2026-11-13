@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth, HasPermission } from '../context/AuthContext'
+import { CURRENT_APP_VERSION, getChannelBadgeStyle } from '../lib/version'
 import {
   GraduationCap,
   MessageSquare,
@@ -51,23 +52,32 @@ export const MainLayout: React.FC = () => {
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 gap-4">
           {/* Brand */}
-          <Link to="/" className="flex items-center space-x-2 font-bold text-xl text-primary shrink-0">
-            <GraduationCap className="h-7 w-7 text-primary" />
-            <span className="tracking-tight">TDMS</span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium hidden sm:inline-block">
-              Discovery & Matching
-            </span>
+          <Link to="/" className="inline-flex items-center font-bold text-xl text-primary shrink-0 group mr-4">
+            <GraduationCap className="h-7 w-7 text-primary shrink-0" />
+            <div className="relative ml-2 flex items-center">
+              <span className="tracking-tight text-xl font-bold">TDMS</span>
+              <span
+                className={`absolute -top-1.5 left-full ml-1 px-1.5 py-0.5 text-[8.5px] font-extrabold uppercase tracking-wider rounded-full border leading-none shadow-2xs whitespace-nowrap ${getChannelBadgeStyle(
+                  CURRENT_APP_VERSION.channel
+                )}`}
+                title={`Release Channel: ${CURRENT_APP_VERSION.channel}`}
+              >
+                {CURRENT_APP_VERSION.channel}
+              </span>
+            </div>
           </Link>
 
           {/* Desktop Nav Links (Home button removed) */}
           <nav className="hidden md:flex items-center space-x-5 lg:space-x-6 text-sm font-medium">
-            <Link
-              to="/tutors"
-              className={`flex items-center space-x-1 transition hover:text-primary ${isActive('/tutors') ? 'text-primary font-semibold' : 'text-muted-foreground'}`}
-            >
-              <Search className="h-4 w-4" />
-              <span>Find Tutors</span>
-            </Link>
+            <HasPermission permission="view:menu:find_tutors">
+              <Link
+                to="/tutors"
+                className={`flex items-center space-x-1 transition hover:text-primary ${isActive('/tutors') ? 'text-primary font-semibold' : 'text-muted-foreground'}`}
+              >
+                <Search className="h-4 w-4" />
+                <span>Find Tutors</span>
+              </Link>
+            </HasPermission>
 
             {/* Gated Top-Nav Items */}
             <HasPermission permission="view:menu:learner_account">
@@ -187,13 +197,15 @@ export const MainLayout: React.FC = () => {
             >
               Home
             </Link>
-            <Link
-              to="/tutors"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-1.5 text-sm font-medium"
-            >
-              Find Tutors
-            </Link>
+            <HasPermission permission="view:menu:find_tutors">
+              <Link
+                to="/tutors"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block py-1.5 text-sm font-medium"
+              >
+                Find Tutors
+              </Link>
+            </HasPermission>
             <HasPermission permission="view:menu:learner_account">
               <Link
                 to="/account"
@@ -275,14 +287,33 @@ export const MainLayout: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <footer className="border-t py-6 bg-secondary/30 text-xs text-muted-foreground">
-        <div className="container mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="flex items-center space-x-2">
-            <GraduationCap className="h-5 w-5 text-primary" />
-            <span className="font-semibold text-foreground">TDMS Platform</span>
-            <span>— Student-Tutor Discovery and Matching System</span>
+      <footer className="border-t py-8 bg-secondary/30 text-xs text-muted-foreground mt-auto">
+        <div className="container mx-auto px-4 space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center space-x-2">
+                <GraduationCap className="h-5 w-5 text-primary" />
+                <span className="font-semibold text-foreground">TDMS Platform</span>
+              </div>
+              <span>— Tutor-Student Discovery and Matching System</span>
+              <span
+                className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded-full border ${getChannelBadgeStyle(
+                  CURRENT_APP_VERSION.channel
+                )}`}
+              >
+                {CURRENT_APP_VERSION.channel}
+              </span>
+            </div>
+            <div className="flex items-center space-x-4 text-xs">
+              <Link to="/tutors" className="hover:text-foreground transition">Browse Tutors</Link>
+              <Link to="/register/tutor" className="hover:text-foreground transition">Become a Tutor</Link>
+              <Link to="/register/learner" className="hover:text-foreground transition">Student Registration</Link>
+            </div>
           </div>
-          <div>.NET 10 + MariaDB + React SPA with PBAC Authorization</div>
+          <div className="border-t border-border/50 pt-4 flex flex-col sm:flex-row justify-between items-center gap-2 text-[11px] text-muted-foreground/80">
+            <p>© {new Date().getFullYear()} TDMS Platform. All rights reserved.</p>
+            <p>Empowering educators and learners across Myanmar</p>
+          </div>
         </div>
       </footer>
     </div>

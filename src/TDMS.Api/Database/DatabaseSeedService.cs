@@ -130,9 +130,11 @@ public class DatabaseSeedService
 
         var parentStudentClaims = new[]
         {
+            UIControlNames.NavFindTutors,
             UIControlNames.NavLearnerAccount,
             UIControlNames.NavMessages,
             UIControlNames.NavMyReviews,
+            UIControlNames.TabReviewsByMe,
             "tutors:read",
             "categories:read",
             "learner_profiles:read",
@@ -183,6 +185,15 @@ public class DatabaseSeedService
         };
         SyncRoleClaims(tutorRole, tutorClaims);
 
+        // Defensively ensure Tutor role never holds Find Tutors or Reviews By Me claims
+        var unwantedTutorClaims = tutorRole.RoleClaims
+            .Where(rc => rc.ClaimType == UIControlNames.NavFindTutors || rc.ClaimType == UIControlNames.TabReviewsByMe)
+            .ToList();
+        if (unwantedTutorClaims.Count > 0)
+        {
+            _context.RoleClaims.RemoveRange(unwantedTutorClaims);
+        }
+
         // 4. OperationAdmin Role
         var opAdminRole = await _context.Roles
             .Include(r => r.RoleClaims)
@@ -201,6 +212,7 @@ public class DatabaseSeedService
 
         var opAdminClaims = new[]
         {
+            UIControlNames.NavFindTutors,
             UIControlNames.AdminPanelAccess,
             UIControlNames.MenuOperations,
             UIControlNames.MenuAnalytics,

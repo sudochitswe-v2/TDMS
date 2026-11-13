@@ -65,7 +65,7 @@ TDMS/
 │   │   │   ├── Inteceptor/             # SaveChanges interceptors (e.g. Auditable)
 │   │   │   └── Migrations/             # EF Core migration history
 │   │   ├── Middlewares/                # Custom HTTP middlewares (e.g. Error handling)
-│   │   ├── Features/                   # Features-based Vertical Slice implementations
+│   │   └── Features/                   # Features-based Vertical Slice implementations
 │   │   └── wwwroot/                    # Output target for compiled React SPA assets
 │   │
 │   └── TDMS.Spa/                       # Frontend SPA (React + Vite)

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/api'
+import { useAuth } from '../context/AuthContext'
 import { Pagination } from '../components/Pagination'
 import {
   Search,
@@ -12,7 +13,6 @@ import {
   ArrowRight,
   GraduationCap,
   SlidersHorizontal,
-  X
 } from 'lucide-react'
 
 interface TutorCard {
@@ -41,21 +41,38 @@ interface CategoryItem {
 
 export const TutorSearchPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams()
+  const { user, isAuthenticated } = useAuth()
+  const isLearner = isAuthenticated && (user?.roles?.includes('ParentStudent') || !user?.roles?.includes('Tutor'))
+
   const [showMobileFilters, setShowMobileFilters] = useState(false)
 
-  const [categoryId, setCategoryId] = useState<string>(searchParams.get('categoryId') || '')
-  const [maxFee, setMaxFee] = useState<number>(Number(searchParams.get('maxFee')) || 50000)
-  const [teachingMode, setTeachingMode] = useState<string>(searchParams.get('teachingMode') || '')
-  const [dayOfWeek, setDayOfWeek] = useState<string>(searchParams.get('dayOfWeek') || '')
-  const [searchTerm, setSearchTerm] = useState<string>(searchParams.get('search') || '')
+  // Track active committed filters in URL
+  const activeCategoryId = searchParams.get('categoryId') || ''
+  const activeMaxFee = searchParams.get('maxFee') || ''
+  const activeTeachingMode = searchParams.get('teachingMode') || ''
+  const activeDayOfWeek = searchParams.get('dayOfWeek') || ''
+  const activeSearch = searchParams.get('search') || ''
+
+  const hasActiveFilters = Boolean(
+    activeCategoryId || activeMaxFee || activeTeachingMode || activeDayOfWeek || activeSearch
+  )
+
+  // Local state for sidebar filter controls
+  const [categoryId, setCategoryId] = useState<string>(activeCategoryId)
+  const [maxFee, setMaxFee] = useState<number | ''>(activeMaxFee ? Number(activeMaxFee) : '')
+  const [teachingMode, setTeachingMode] = useState<string>(activeTeachingMode)
+  const [dayOfWeek, setDayOfWeek] = useState<string>(activeDayOfWeek)
+  const [searchTerm, setSearchTerm] = useState<string>(activeSearch)
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [pageSize, setPageSize] = useState<number>(6)
 
+  // Synchronize local form state with URL search params changes
   useEffect(() => {
     setSearchTerm(searchParams.get('search') || '')
-    if (searchParams.get('categoryId') !== null) {
-      setCategoryId(searchParams.get('categoryId') || '')
-    }
+    setCategoryId(searchParams.get('categoryId') || '')
+    setMaxFee(searchParams.get('maxFee') ? Number(searchParams.get('maxFee')) : '')
+    setTeachingMode(searchParams.get('teachingMode') || '')
+    setDayOfWeek(searchParams.get('dayOfWeek') || '')
     setCurrentPage(1)
   }, [searchParams])
 
@@ -64,33 +81,37 @@ export const TutorSearchPage: React.FC = () => {
     queryFn: () => api.get('/api/categories'),
   })
 
-  // Build query string
-  const queryParams = new URLSearchParams()
-  if (categoryId) queryParams.set('categoryId', categoryId)
-  if (maxFee) queryParams.set('maxFee', maxFee.toString())
-  if (teachingMode) queryParams.set('teachingMode', teachingMode)
-  if (dayOfWeek) queryParams.set('dayOfWeek', dayOfWeek)
-  if (searchTerm) queryParams.set('search', searchTerm)
+  // Build query string strictly from active committed URL searchParams
+  const queryString = searchParams.toString()
 
   const { data: tutors = [], isLoading } = useQuery<TutorCard[]>({
-    queryKey: ['tutorsSearch', queryParams.toString()],
-    queryFn: () => api.get(`/api/tutors/search?${queryParams.toString()}`),
+    queryKey: ['tutorsSearch', queryString],
+    queryFn: () => api.get(`/api/tutors/search${queryString ? `?${queryString}` : ''}`),
   })
 
   const paginatedTutors = tutors.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   const handleApplyFilters = () => {
-    setSearchParams(queryParams)
+    const params = new URLSearchParams()
+    if (categoryId) params.set('categoryId', categoryId)
+    if (maxFee !== '') params.set('maxFee', maxFee.toString())
+    if (teachingMode) params.set('teachingMode', teachingMode)
+    if (dayOfWeek) params.set('dayOfWeek', dayOfWeek)
+    if (searchTerm.trim()) params.set('search', searchTerm.trim())
+    setSearchParams(params)
     setShowMobileFilters(false)
+    setCurrentPage(1)
   }
 
   const handleResetFilters = () => {
     setCategoryId('')
-    setMaxFee(50000)
+    setMaxFee('')
     setTeachingMode('')
     setDayOfWeek('')
     setSearchTerm('')
     setSearchParams({})
+    setShowMobileFilters(false)
+    setCurrentPage(1)
   }
 
   const getMatchScoreBadge = (score: number) => {
@@ -109,7 +130,11 @@ export const TutorSearchPage: React.FC = () => {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Tutor Directory</h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-            Ranked by match compatibility across subject relevance, tuition budget, and schedule availability
+            {hasActiveFilters
+              ? 'Results filtered strictly according to your selected search criteria'
+              : isAuthenticated
+              ? 'Tutors prioritized by match compatibility with your profile requirements'
+              : 'Ranked by verified subscription tiers, educator reviews, and student satisfaction'}
           </p>
         </div>
 
@@ -138,7 +163,7 @@ export const TutorSearchPage: React.FC = () => {
             </div>
             <button
               onClick={handleResetFilters}
-              className="text-xs text-muted-foreground hover:text-foreground font-medium"
+              className="text-xs text-muted-foreground hover:text-foreground font-medium cursor-pointer"
             >
               Reset
             </button>
@@ -151,9 +176,12 @@ export const TutorSearchPage: React.FC = () => {
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <input
                 type="text"
-                placeholder="Search..."
+                placeholder="Search name, headline..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleApplyFilters()
+                }}
                 className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
@@ -178,21 +206,36 @@ export const TutorSearchPage: React.FC = () => {
 
           {/* Max Hourly Budget */}
           <div className="space-y-2">
-            <div className="flex justify-between text-xs">
+            <div className="flex justify-between text-xs items-center">
               <label className="font-semibold">Max Hourly Budget</label>
-              <span className="font-bold text-primary">{maxFee.toLocaleString()} MMK</span>
+              <div className="flex items-center space-x-1.5">
+                <span className="font-bold text-primary">
+                  {maxFee !== '' ? `${Number(maxFee).toLocaleString()} MMK` : 'No Limit'}
+                </span>
+                {maxFee !== '' && (
+                  <button
+                    type="button"
+                    onClick={() => setMaxFee('')}
+                    className="text-[10px] text-muted-foreground hover:text-foreground underline cursor-pointer"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
             </div>
             <input
               type="range"
               min="5000"
               max="100000"
               step="5000"
-              value={maxFee}
+              value={maxFee !== '' ? maxFee : 100000}
               onChange={(e) => setMaxFee(Number(e.target.value))}
               className="w-full accent-primary cursor-pointer"
             />
             <p className="text-[10px] text-muted-foreground">
-              Scores decay linearly if a tutor's fee exceeds this budget.
+              {maxFee !== ''
+                ? 'Only tutors with hourly fees within this budget will be returned.'
+                : 'Slide to limit tutors to your preferred maximum hourly budget.'}
             </p>
           </div>
 
@@ -240,9 +283,57 @@ export const TutorSearchPage: React.FC = () => {
 
         {/* Results List */}
         <div className="lg:col-span-3 space-y-4">
+          {/* Status banner */}
+          {hasActiveFilters && (
+            <div className="p-3.5 rounded-2xl bg-secondary/50 border flex items-center justify-between text-xs">
+              <div className="flex items-center space-x-2 text-foreground font-medium">
+                <Filter className="h-4 w-4 text-primary shrink-0" />
+                <span>Filters active: showing {tutors.length} matching verified educator{tutors.length === 1 ? '' : 's'}.</span>
+              </div>
+              <button
+                onClick={handleResetFilters}
+                className="text-primary font-semibold hover:underline cursor-pointer ml-2 shrink-0"
+              >
+                Reset Filters
+              </button>
+            </div>
+          )}
+
+          {!hasActiveFilters && isAuthenticated && (
+            <div className="p-3.5 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-between text-xs">
+              <div className="flex items-center space-x-2 text-foreground font-medium">
+                <Sparkles className="h-4 w-4 text-primary shrink-0" />
+                <span>Showing tutors prioritized by match compatibility with your profile requirements.</span>
+              </div>
+              {isLearner && (
+                <Link to="/account" className="text-primary font-semibold hover:underline shrink-0 ml-2">
+                  Edit Requirements &rarr;
+                </Link>
+              )}
+            </div>
+          )}
+
+          {!hasActiveFilters && !isAuthenticated && (
+            <div className="p-3.5 rounded-2xl bg-secondary/30 border flex items-center justify-between text-xs text-muted-foreground">
+              <div className="flex items-center space-x-2">
+                <GraduationCap className="h-4 w-4 text-primary shrink-0" />
+                <span>Featured educator directory &bull; Ranked by verified subscription tiers & ratings</span>
+              </div>
+              <Link to="/login" className="text-primary font-semibold hover:underline shrink-0 ml-2">
+                Sign in for personalized matching &rarr;
+              </Link>
+            </div>
+          )}
+
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Showing {tutors.length} verified educators</span>
-            <span>Ranked by Match Score</span>
+            <span>Showing {tutors.length} verified educator{tutors.length === 1 ? '' : 's'}</span>
+            <span>
+              {hasActiveFilters
+                ? 'Filtered & Ranked by Match'
+                : isAuthenticated
+                ? 'Prioritized by Profile Match'
+                : 'Ranked by Tier & Rating'}
+            </span>
           </div>
 
           {isLoading && (
@@ -256,8 +347,20 @@ export const TutorSearchPage: React.FC = () => {
               <GraduationCap className="h-10 w-10 text-muted-foreground mx-auto" />
               <h3 className="font-semibold text-base">No Matching Tutors Found</h3>
               <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                No tutors match your active filters. Try increasing your maximum MMK budget or selecting 'Any Mode'.
+                {hasActiveFilters
+                  ? 'No tutors match your active filters. Try increasing your maximum MMK budget, clearing some filters, or selecting "Any Mode".'
+                  : isLearner
+                  ? 'No tutors currently match your profile requirements. Try updating your subject or budget requirements in your account settings.'
+                  : 'No verified tutors found in the directory.'}
               </p>
+              {hasActiveFilters && (
+                <button
+                  onClick={handleResetFilters}
+                  className="px-4 py-2 bg-primary text-primary-foreground text-xs font-semibold rounded-xl hover:opacity-90 transition cursor-pointer"
+                >
+                  Reset All Filters
+                </button>
+              )}
             </div>
           )}
 

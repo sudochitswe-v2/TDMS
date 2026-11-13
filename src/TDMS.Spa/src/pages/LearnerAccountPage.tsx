@@ -78,6 +78,7 @@ export const LearnerAccountPage: React.FC = () => {
     mutationFn: (updated: any) => api.put('/api/account/learner-profile', updated),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['learnerProfile'] })
+      queryClient.invalidateQueries({ queryKey: ['tutorsSearch'] })
       setSuccessMessage('Learner requirements updated successfully!')
       setTimeout(() => setSuccessMessage(''), 3000)
     },

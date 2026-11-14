@@ -118,7 +118,6 @@ export const PaymentReportsPage: React.FC = () => {
 
   const methods = data?.methods || []
   const packages = data?.packages || []
-  const monthlyTrends = data?.monthlyTrends || []
   const allPayments = data?.payments || []
 
   // Filtered payments list based on search, status, and method
@@ -392,30 +391,6 @@ export const PaymentReportsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Monthly Timeline Overview (if trends available) */}
-      {monthlyTrends.length > 0 && (
-        <div className="rounded-2xl border bg-card p-6 shadow-sm space-y-4">
-          <div className="flex items-center justify-between border-b pb-3">
-            <div className="flex items-center space-x-2">
-              <TrendingUp className="w-4 h-4 text-primary" />
-              <h2 className="font-bold text-sm">Monthly Settlement Cadence</h2>
-            </div>
-            <span className="text-xs text-muted-foreground">Historical Trend</span>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-            {monthlyTrends.map((t) => (
-              <div key={t.period} className="p-3 rounded-xl border bg-secondary/20 text-center space-y-1">
-                <p className="text-[11px] font-semibold text-muted-foreground">{t.label}</p>
-                <p className="text-sm font-bold text-foreground">{t.revenue.toLocaleString()} MMK</p>
-                <p className="text-[10px] text-muted-foreground">
-                  {t.confirmedCount} / {t.totalCount} orders
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Transactions Audit Table Card */}
       <div className="rounded-2xl border bg-card shadow-sm space-y-4 p-6">

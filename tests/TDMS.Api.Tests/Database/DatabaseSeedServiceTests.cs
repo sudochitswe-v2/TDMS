@@ -145,4 +145,45 @@ public class DatabaseSeedServiceTests
         var adminUserCheck = await context.Users.FirstAsync(u => u.Email == "admin@tdms.local");
         BCrypt.Net.BCrypt.Verify(DatabaseSeedService.DefaultPassword, adminUserCheck.PasswordHash).Should().BeTrue();
     }
+
+    [Fact]
+    public async Task SeedAsync_WhenDataAlreadyExists_ShouldSkipWithoutReSeedingOrThrowing()
+    {
+        // Arrange
+        using var context = CreateDbContext();
+        var seeder = new DatabaseSeedService(context);
+
+        // First run - seeds data
+        await seeder.SeedAsync();
+        var initialUserCount = await context.Users.CountAsync();
+        var initialReviewCount = await context.Reviews.CountAsync();
+        initialUserCount.Should().BeGreaterThan(0);
+
+        // Act - Second run when database already has data
+        await seeder.SeedAsync();
+
+        // Assert - no duplicate records created, no exceptions thrown
+        var secondUserCount = await context.Users.CountAsync();
+        var secondReviewCount = await context.Reviews.CountAsync();
+
+        secondUserCount.Should().Be(initialUserCount);
+        secondReviewCount.Should().Be(initialReviewCount);
+    }
+
+    [Fact]
+    public async Task HasExistingDataAsync_ShouldReturnFalseWhenEmpty_AndTrueWhenUsersExist()
+    {
+        // Arrange
+        using var context = CreateDbContext();
+        var seeder = new DatabaseSeedService(context);
+
+        // Act & Assert 1 - Initially empty
+        var hasDataInitially = await seeder.HasExistingDataAsync();
+        hasDataInitially.Should().BeFalse();
+
+        // Act & Assert 2 - After seeding
+        await seeder.SeedAsync();
+        var hasDataAfterSeed = await seeder.HasExistingDataAsync();
+        hasDataAfterSeed.Should().BeTrue();
+    }
 }

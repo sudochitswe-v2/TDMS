@@ -480,19 +480,18 @@ export const TutorStudioPage: React.FC = () => {
           <div className="flex items-center space-x-2">
             <h1 className="text-2xl font-bold tracking-tight">Tutor Studio Workspace</h1>
             <span
-              className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
-                tutor?.verificationStatus === 'Verified'
+              className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${tutor?.verificationStatus === 'Verified'
                   ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                   : tutor?.verificationStatus === 'Rejected'
-                  ? 'bg-destructive/10 text-destructive'
-                  : 'bg-amber-500/10 text-amber-600'
-              }`}
+                    ? 'bg-destructive/10 text-destructive'
+                    : 'bg-amber-500/10 text-amber-600'
+                }`}
             >
               Status: {tutor?.verificationStatus}
             </span>
           </div>
           <p className="text-xs text-muted-foreground">
-            Current Subscription Tier:{' '}
+            Current Plan :{' '}
             <span className="font-semibold text-primary">{tutor?.subscriptionPackage?.tierName || 'Basic Tier'}</span>
             {' '}• Priority Boost: +{tutor?.subscriptionPackage?.prioritySearchBoost || 0}%
           </p>
@@ -534,31 +533,28 @@ export const TutorStudioPage: React.FC = () => {
       <div className="flex border-b space-x-4 text-sm font-semibold overflow-x-auto">
         <button
           onClick={() => setActiveTab('teaching')}
-          className={`pb-3 transition border-b-2 whitespace-nowrap ${
-            activeTab === 'teaching'
+          className={`pb-3 transition border-b-2 whitespace-nowrap ${activeTab === 'teaching'
               ? 'border-primary text-primary'
               : 'border-transparent text-muted-foreground hover:text-foreground'
-          }`}
+            }`}
         >
           Teaching Info & Schedule
         </button>
         <button
           onClick={() => setActiveTab('customization')}
-          className={`pb-3 transition border-b-2 whitespace-nowrap ${
-            activeTab === 'customization'
+          className={`pb-3 transition border-b-2 whitespace-nowrap ${activeTab === 'customization'
               ? 'border-primary text-primary'
               : 'border-transparent text-muted-foreground hover:text-foreground'
-          }`}
+            }`}
         >
           Profile Customization & Visibility
         </button>
         <button
           onClick={() => setActiveTab('verification')}
-          className={`pb-3 transition border-b-2 whitespace-nowrap flex items-center space-x-1.5 ${
-            activeTab === 'verification'
+          className={`pb-3 transition border-b-2 whitespace-nowrap flex items-center space-x-1.5 ${activeTab === 'verification'
               ? 'border-primary text-primary'
               : 'border-transparent text-muted-foreground hover:text-foreground'
-          }`}
+            }`}
         >
           <span>Verification & Credentials</span>
           {tutor?.verificationStatus === 'Rejected' && (
@@ -567,11 +563,10 @@ export const TutorStudioPage: React.FC = () => {
         </button>
         <button
           onClick={() => setActiveTab('subscription')}
-          className={`pb-3 transition border-b-2 whitespace-nowrap ${
-            activeTab === 'subscription'
+          className={`pb-3 transition border-b-2 whitespace-nowrap ${activeTab === 'subscription'
               ? 'border-primary text-primary'
               : 'border-transparent text-muted-foreground hover:text-foreground'
-          }`}
+            }`}
         >
           Subscription Packages
         </button>
@@ -645,11 +640,10 @@ export const TutorStudioPage: React.FC = () => {
                     type="button"
                     key={c.id}
                     onClick={() => toggleCategory(c.id)}
-                    className={`p-3 rounded-xl border text-xs font-semibold text-left transition ${
-                      selected
+                    className={`p-3 rounded-xl border text-xs font-semibold text-left transition ${selected
                         ? 'border-primary bg-primary/10 text-primary'
                         : 'bg-secondary/30 text-muted-foreground hover:bg-secondary'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center justify-between">
                       <span>{c.name}</span>
@@ -1019,9 +1013,9 @@ export const TutorStudioPage: React.FC = () => {
                       <div className="flex items-center space-x-2">
                         <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
                           {doc.documentType === 'AcademicCertificate' ? 'Academic Degree' :
-                           doc.documentType === 'TutoringProof' ? 'Tutoring Proof' :
-                           doc.documentType === 'ProfessionalLicense' ? 'Teaching License' :
-                           doc.documentType === 'IdentityDocument' ? 'Identity ID' : doc.documentType}
+                            doc.documentType === 'TutoringProof' ? 'Tutoring Proof' :
+                              doc.documentType === 'ProfessionalLicense' ? 'Teaching License' :
+                                doc.documentType === 'IdentityDocument' ? 'Identity ID' : doc.documentType}
                         </span>
                         {doc.fileSizeBytes ? (
                           <span className="text-[10px] text-muted-foreground">{formatFileSize(doc.fileSizeBytes)}</span>
@@ -1176,13 +1170,12 @@ export const TutorStudioPage: React.FC = () => {
                 return (
                   <div
                     key={pkg.id}
-                    className={`p-6 rounded-2xl border flex flex-col justify-between space-y-4 ${
-                      isCurrent
+                    className={`p-6 rounded-2xl border flex flex-col justify-between space-y-4 ${isCurrent
                         ? 'border-primary bg-primary/5 shadow-md'
                         : hasPending
-                        ? 'border-amber-500/40 bg-amber-500/5'
-                        : 'bg-card'
-                    }`}
+                          ? 'border-amber-500/40 bg-amber-500/5'
+                          : 'bg-card'
+                      }`}
                   >
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
@@ -1215,21 +1208,20 @@ export const TutorStudioPage: React.FC = () => {
                     <button
                       disabled={isCurrent || hasPending || selectPackage.isPending}
                       onClick={() => handleOpenPurchase(pkg)}
-                      className={`w-full py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
-                        isCurrent
+                      className={`w-full py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer ${isCurrent
                           ? 'bg-secondary text-muted-foreground cursor-default'
                           : hasPending
-                          ? 'bg-amber-500/10 text-amber-600 border border-amber-500/30 cursor-default'
-                          : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
-                      }`}
+                            ? 'bg-amber-500/10 text-amber-600 border border-amber-500/30 cursor-default'
+                            : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
+                        }`}
                     >
                       {isCurrent
                         ? 'Active Plan'
                         : hasPending
-                        ? 'Verification in Progress'
-                        : pkg.displayFee <= 0
-                        ? 'Select Free Plan'
-                        : `Select & Pay (${pkg.displayFee.toLocaleString()} MMK)`}
+                          ? 'Verification in Progress'
+                          : pkg.displayFee <= 0
+                            ? 'Select Free Plan'
+                            : `Select & Pay (${pkg.displayFee.toLocaleString()} MMK)`}
                     </button>
                   </div>
                 )
@@ -1256,13 +1248,12 @@ export const TutorStudioPage: React.FC = () => {
                       <div className="flex items-center space-x-2">
                         <span className="font-semibold text-foreground">{p.packageName}</span>
                         <span
-                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                            p.status === 'Confirmed'
+                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${p.status === 'Confirmed'
                               ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                               : p.status === 'Rejected'
-                              ? 'bg-destructive/10 text-destructive'
-                              : 'bg-amber-500/10 text-amber-600'
-                          }`}
+                                ? 'bg-destructive/10 text-destructive'
+                                : 'bg-amber-500/10 text-amber-600'
+                            }`}
                         >
                           {p.status}
                         </span>

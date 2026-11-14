@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using TDMS.Api.Abstructions;
 using TDMS.Api.Database.Entities;
 
@@ -9,14 +10,41 @@ public class DatabaseSeedService
 {
     public const string DefaultPassword = "Password123!";
     private readonly AppDbContext _context;
+    private readonly ILogger<DatabaseSeedService>? _logger;
 
-    public DatabaseSeedService(AppDbContext context)
+    public DatabaseSeedService(AppDbContext context, ILogger<DatabaseSeedService>? logger = null)
     {
         _context = context;
+        _logger = logger;
     }
 
-    public async Task SeedAsync()
+    public async Task<bool> HasExistingDataAsync()
     {
+        try
+        {
+            if (!await _context.Database.CanConnectAsync())
+            {
+                return false;
+            }
+
+            return await _context.Users.AnyAsync();
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task SeedAsync(bool force = false)
+    {
+        // Only migrate and seed if database is completely empty or explicitly forced
+        if (!force && await HasExistingDataAsync())
+        {
+            _logger?.LogInformation("Database already contains data. Skipping schema migration and seeding.");
+            return;
+        }
+
+        _logger?.LogInformation("No existing data found in database. Initializing schema and seeding default records...");
         await _context.Database.EnsureCreatedAsync();
 
         if (_context.Database.IsRelational())
@@ -821,12 +849,26 @@ public class DatabaseSeedService
             .ToListAsync();
         if (students.Count == 0) return;
 
-        var studentByEmail = students.ToDictionary(s => s.Email, s => s);
-        var tutorBySubject = tutors.ToDictionary(
-            t => t.Categories.FirstOrDefault()?.Category.Name ?? "",
-            t => t,
-            StringComparer.OrdinalIgnoreCase
-        );
+        var studentByEmail = new Dictionary<string, User>(StringComparer.OrdinalIgnoreCase);
+        foreach (var s in students)
+        {
+            if (!string.IsNullOrWhiteSpace(s.Email))
+            {
+                studentByEmail.TryAdd(s.Email, s);
+            }
+        }
+
+        var tutorBySubject = new Dictionary<string, TutorProfile>(StringComparer.OrdinalIgnoreCase);
+        foreach (var t in tutors)
+        {
+            foreach (var cat in t.Categories)
+            {
+                if (cat.Category != null && !string.IsNullOrWhiteSpace(cat.Category.Name))
+                {
+                    tutorBySubject.TryAdd(cat.Category.Name, t);
+                }
+            }
+        }
 
         // Define authentic, verified reviews given by real students
         var reviewDefinitions = new[]

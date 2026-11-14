@@ -146,6 +146,7 @@ describe('Admin Payment and Subscription Report Pages', () => {
     })
     expect(screen.getByText('Dr. Kyaw Swar')).toBeDefined()
     expect(screen.getByText('892145')).toBeDefined()
+    expect(screen.queryByText('Monthly Settlement Cadence')).toBeNull()
   })
 
   it('renders SubscriptionReportsPage with tier distribution and educator lifecycle roster', async () => {

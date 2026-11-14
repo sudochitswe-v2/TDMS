@@ -80,3 +80,10 @@ lerna-debug.log*
 ehthumbs.db
 Thumbs.db
 [Dd]esktop.ini
+
+
+# ==========================================
+# Danger Zone
+# ==========================================
+
+firebase.service.json

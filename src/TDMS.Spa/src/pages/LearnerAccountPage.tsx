@@ -140,9 +140,6 @@ export const LearnerAccountPage: React.FC = () => {
               {accountSubType} Account
             </span>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Configure your subject goals and study schedule to optimize automatic match percentage calculations
-          </p>
         </div>
 
         <button
@@ -243,11 +240,10 @@ export const LearnerAccountPage: React.FC = () => {
                   type="button"
                   key={c.id}
                   onClick={() => toggleCategory(c.id)}
-                  className={`p-3 rounded-xl border text-xs font-semibold text-left transition ${
-                    selected
+                  className={`p-3 rounded-xl border text-xs font-semibold text-left transition ${selected
                       ? 'border-primary bg-primary/10 text-primary'
                       : 'bg-secondary/30 text-muted-foreground hover:bg-secondary'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center justify-between">
                     <span>{c.name}</span>

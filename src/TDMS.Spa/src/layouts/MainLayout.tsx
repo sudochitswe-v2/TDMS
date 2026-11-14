@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth, HasPermission } from '../context/AuthContext'
 import { useAppVersion, getChannelBadgeStyle } from '../lib/version'
@@ -24,9 +24,45 @@ export const MainLayout: React.FC = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
+  const profileDropdownRef = useRef<HTMLDivElement>(null)
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('tdms_theme') === 'dark'
   })
+
+  // Close menus on route change
+  useEffect(() => {
+    setProfileDropdownOpen(false)
+    setMobileMenuOpen(false)
+  }, [location.pathname])
+
+  // Handle click outside and Escape key to close profile dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        profileDropdownRef.current &&
+        !profileDropdownRef.current.contains(event.target as Node)
+      ) {
+        setProfileDropdownOpen(false)
+      }
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setProfileDropdownOpen(false)
+      }
+    }
+
+    if (profileDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('keydown', handleKeyDown)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [profileDropdownOpen])
 
   useEffect(() => {
     if (darkMode) {
@@ -45,13 +81,26 @@ export const MainLayout: React.FC = () => {
     navigate('/')
   }
 
+  // Resolve respective profile editing path depending on active user role
+  const getProfilePath = () => {
+    if (!user) return '/login'
+    if (user.roles?.includes('Tutor')) return '/tutor-studio'
+    if (user.roles?.includes('Learner') || user.roles?.includes('ParentStudent') || user.accountSubType) {
+      return '/account'
+    }
+    if (user.roles?.includes('SystemAdmin') || user.roles?.includes('OperationAdmin')) {
+      return '/admin'
+    }
+    return '/account'
+  }
+
   const isActive = (path: string) => location.pathname === path
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground transition-colors">
       {/* Top Navigation Bar */}
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4 gap-4">
+        <div className="w-full flex h-16 items-center justify-between px-4 sm:px-6 gap-4">
           {/* Brand */}
           <Link to="/" className="inline-flex items-center font-bold text-xl text-primary shrink-0 group mr-4">
             <GraduationCap className="h-7 w-7 text-primary shrink-0" />
@@ -122,34 +171,110 @@ export const MainLayout: React.FC = () => {
             </HasPermission>
           </nav>
 
-          {/* Right Header Actions: Admin, Auth/Profile, and Theme Switch at Far Right Corner */}
+          {/* Right Header Actions: Profile Dropdown & Theme Toggle */}
           <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
-            {/* Admin Panel Switcher */}
-            {hasPermission('view:menu:admin_panel') && (
-              <Link
-                to="/admin"
-                className="hidden sm:flex items-center space-x-1 text-xs font-semibold px-3 py-1.5 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 border transition"
-              >
-                <ShieldCheck className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                <span>Admin Panel</span>
-              </Link>
-            )}
-
+            {/* Authenticated State: Profile Icon with Dropdown Menu */}
             {isAuthenticated && user ? (
-              <div className="flex items-center space-x-2">
-                <div className="hidden lg:flex flex-col text-right">
-                  <span className="text-xs font-medium leading-none">{user.fullName}</span>
-                  <span className="text-[10px] text-muted-foreground mt-0.5">
-                    {user.roles.join(', ')}
-                  </span>
-                </div>
+              <div className="relative" ref={profileDropdownRef}>
                 <button
-                  onClick={handleLogout}
-                  title="Logout"
-                  className="p-2 rounded-lg border text-destructive hover:bg-destructive/10 transition"
+                  type="button"
+                  onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                  aria-label="User profile menu"
+                  aria-expanded={profileDropdownOpen}
+                  aria-haspopup="true"
+                  title={user.fullName || 'User Profile'}
+                  className={`flex items-center justify-center h-9 w-9 rounded-full border transition-all ${
+                    profileDropdownOpen
+                      ? 'border-primary ring-2 ring-primary/20 bg-primary/15 text-primary'
+                      : 'border-border bg-secondary/60 text-foreground hover:bg-secondary hover:border-primary/40'
+                  }`}
                 >
-                  <LogOut className="h-4 w-4" />
+                  <User className="h-4.5 w-4.5 text-primary" />
                 </button>
+
+                {/* Profile Dropdown Menu */}
+                {profileDropdownOpen && (
+                  <div
+                    role="menu"
+                    aria-orientation="vertical"
+                    className="absolute right-0 top-full mt-2 w-64 rounded-2xl border bg-card p-2 shadow-xl z-50 text-foreground animate-in fade-in-50 zoom-in-95 duration-150"
+                  >
+                    {/* User Summary Info */}
+                    <div className="px-3 py-2.5 border-b mb-1">
+                      <p className="text-xs font-bold text-foreground truncate">{user.fullName}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
+                      <div className="mt-1.5 flex flex-wrap gap-1">
+                        {user.roles?.map((r) => (
+                          <span
+                            key={r}
+                            className="px-1.5 py-0.2 rounded-md bg-primary/10 text-primary text-[10px] font-bold"
+                          >
+                            {r}
+                          </span>
+                        ))}
+                        {user.accountSubType && (
+                          <span className="px-1.5 py-0.2 rounded-md bg-secondary text-secondary-foreground text-[10px] font-semibold">
+                            {user.accountSubType}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Profile Button (Redirects to respective profile editing page) */}
+                    <Link
+                      to={getProfilePath()}
+                      role="menuitem"
+                      onClick={() => setProfileDropdownOpen(false)}
+                      className="flex items-center space-x-2.5 w-full px-3 py-2 text-xs font-semibold rounded-xl hover:bg-secondary transition text-foreground group"
+                    >
+                      <User className="h-4 w-4 text-primary shrink-0 group-hover:scale-110 transition-transform" />
+                      <div className="flex flex-col text-left">
+                        <span>Profile</span>
+                        <span className="text-[10px] text-muted-foreground font-normal">
+                          {user.roles?.includes('Tutor')
+                            ? 'Edit Tutor Profile'
+                            : user.roles?.includes('SystemAdmin') || user.roles?.includes('OperationAdmin')
+                            ? 'Admin System Management'
+                            : 'Edit Learner Profile'}
+                        </span>
+                      </div>
+                    </Link>
+
+                    {/* Admin Panel Direct Link (if user has admin permission) */}
+                    {hasPermission('view:menu:admin_panel') && (
+                      <Link
+                        to="/admin"
+                        role="menuitem"
+                        onClick={() => setProfileDropdownOpen(false)}
+                        className="flex items-center space-x-2.5 w-full px-3 py-2 text-xs font-semibold rounded-xl hover:bg-secondary transition text-foreground group"
+                      >
+                        <ShieldCheck className="h-4 w-4 text-blue-500 shrink-0 group-hover:scale-110 transition-transform" />
+                        <div className="flex flex-col text-left">
+                          <span>Admin Panel</span>
+                          <span className="text-[10px] text-muted-foreground font-normal">
+                            Operational governance
+                          </span>
+                        </div>
+                      </Link>
+                    )}
+
+                    <div className="border-t my-1" />
+
+                    {/* Logout Dropdown Button */}
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setProfileDropdownOpen(false)
+                        handleLogout()
+                      }}
+                      className="flex items-center space-x-2.5 w-full px-3 py-2 text-xs font-semibold rounded-xl text-destructive hover:bg-destructive/10 transition text-left group"
+                    >
+                      <LogOut className="h-4 w-4 shrink-0 group-hover:-translate-x-0.5 transition-transform" />
+                      <span>Log Out</span>
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="flex items-center space-x-2">
@@ -251,6 +376,34 @@ export const MainLayout: React.FC = () => {
               >
                 Go to Admin Panel
               </Link>
+            )}
+
+            {isAuthenticated && user && (
+              <div className="pt-2 border-t space-y-1">
+                <div className="px-1 py-1">
+                  <p className="text-xs font-bold text-foreground">{user.fullName}</p>
+                  <p className="text-[11px] text-muted-foreground">{user.email}</p>
+                </div>
+                <Link
+                  to={getProfilePath()}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center space-x-2 py-1.5 text-sm font-medium hover:text-primary transition"
+                >
+                  <User className="h-4 w-4 text-primary" />
+                  <span>Profile</span>
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    handleLogout()
+                  }}
+                  className="flex items-center space-x-2 py-1.5 text-sm font-medium text-destructive hover:bg-destructive/10 w-full text-left"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Log Out</span>
+                </button>
+              </div>
             )}
 
             {!isAuthenticated && (

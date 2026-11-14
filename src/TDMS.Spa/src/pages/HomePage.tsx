@@ -117,7 +117,6 @@ export const HomePage: React.FC = () => {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Popular Subjects</h2>
-            <p className="text-xs sm:text-sm text-muted-foreground">Explore educators across top academic and vocational subjects</p>
           </div>
           <Link
             to="/tutors"

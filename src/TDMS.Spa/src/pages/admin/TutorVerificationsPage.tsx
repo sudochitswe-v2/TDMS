@@ -126,9 +126,6 @@ export const TutorVerificationsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Tutor Credential Verifications</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Review educator profile pictures, academic degrees, and proof of tutoring work before marketplace publishing
-          </p>
         </div>
         <div className="flex items-center space-x-2">
           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
@@ -157,31 +154,28 @@ export const TutorVerificationsPage: React.FC = () => {
         <div className="flex items-center space-x-1.5 p-1 rounded-xl bg-secondary/40 border w-fit">
           <button
             onClick={() => setStatusFilter('pending')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition ${
-              statusFilter === 'pending'
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition ${statusFilter === 'pending'
                 ? 'bg-card text-foreground shadow-xs'
                 : 'text-muted-foreground hover:text-foreground'
-            }`}
+              }`}
           >
             Pending Review
           </button>
           <button
             onClick={() => setStatusFilter('rejected')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition ${
-              statusFilter === 'rejected'
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition ${statusFilter === 'rejected'
                 ? 'bg-card text-foreground shadow-xs'
                 : 'text-muted-foreground hover:text-foreground'
-            }`}
+              }`}
           >
             Rejected
           </button>
           <button
             onClick={() => setStatusFilter('all')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition ${
-              statusFilter === 'all'
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition ${statusFilter === 'all'
                 ? 'bg-card text-foreground shadow-xs'
                 : 'text-muted-foreground hover:text-foreground'
-            }`}
+              }`}
           >
             All Applications
           </button>
@@ -237,19 +231,18 @@ export const TutorVerificationsPage: React.FC = () => {
                     <div className="flex items-center space-x-3">
                       <h2 className="text-lg font-bold">{tutor.fullName}</h2>
                       <span
-                        className={`text-xs px-2.5 py-0.5 rounded-full font-semibold border ${
-                          tutor.verificationStatus === 'Verified'
+                        className={`text-xs px-2.5 py-0.5 rounded-full font-semibold border ${tutor.verificationStatus === 'Verified'
                             ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
                             : tutor.verificationStatus === 'Rejected'
-                            ? 'bg-destructive/10 text-destructive border-destructive/20'
-                            : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
-                        }`}
+                              ? 'bg-destructive/10 text-destructive border-destructive/20'
+                              : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                          }`}
                       >
                         {tutor.verificationStatus === 'Verified'
                           ? 'Verified'
                           : tutor.verificationStatus === 'Rejected'
-                          ? 'Rejected'
-                          : 'Pending Review'}
+                            ? 'Rejected'
+                            : 'Pending Review'}
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground">{tutor.email}</p>
@@ -348,9 +341,9 @@ export const TutorVerificationsPage: React.FC = () => {
                           <div className="flex items-center space-x-2">
                             <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
                               {doc.documentType === 'AcademicCertificate' ? 'Academic Degree' :
-                               doc.documentType === 'TutoringProof' ? 'Tutoring Proof' :
-                               doc.documentType === 'ProfessionalLicense' ? 'Teaching License' :
-                               doc.documentType === 'IdentityDocument' ? 'Identity ID' : doc.documentType}
+                                doc.documentType === 'TutoringProof' ? 'Tutoring Proof' :
+                                  doc.documentType === 'ProfessionalLicense' ? 'Teaching License' :
+                                    doc.documentType === 'IdentityDocument' ? 'Identity ID' : doc.documentType}
                             </span>
                             {doc.fileSizeBytes ? (
                               <span className="text-[10px] text-muted-foreground">{formatFileSize(doc.fileSizeBytes)}</span>

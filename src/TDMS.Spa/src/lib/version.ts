@@ -1,3 +1,6 @@
+import { useQuery } from '@tanstack/react-query'
+import { api } from './api'
+
 export interface AppVersionInfo {
   raw: string
   version: string
@@ -5,7 +8,9 @@ export interface AppVersionInfo {
   isStable: boolean
 }
 
-export const APP_VERSION_RAW = '1.0.0+preview'
+// Initial fallback version; can be overridden via VITE_APP_VERSION at build time,
+// but runtime will dynamically fetch the active version from the backend API (/api/system/version).
+export const APP_VERSION_RAW = (import.meta.env?.VITE_APP_VERSION as string | undefined) || '1.0.0'
 
 /**
  * Parses GitHub releases versioning: MAJOR.MINOR.PATCH+channel
@@ -55,4 +60,36 @@ export function getChannelBadgeStyle(channel: string): string {
     default:
       return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25'
   }
+}
+
+/**
+ * Fetches the application version from the backend API (/api/system/version).
+ * If unavailable or offline, gracefully falls back to the static fallback version.
+ */
+export async function fetchAppVersion(): Promise<AppVersionInfo> {
+  try {
+    const res = await api.get<{ raw?: string; version?: string; channel?: string; isStable?: boolean }>('/api/system/version')
+    if (res && res.raw) {
+      return parseAppVersion(res.raw)
+    }
+  } catch {
+    // Graceful fallback for offline, tests, or initial load
+  }
+  return CURRENT_APP_VERSION
+}
+
+/**
+ * Hook to retrieve the dynamic application version from the backend API.
+ * Uses TanStack Query for caching and automatic state synchronization across the React app.
+ */
+export function useAppVersion(): AppVersionInfo {
+  const { data } = useQuery<AppVersionInfo>({
+    queryKey: ['systemAppVersion'],
+    queryFn: fetchAppVersion,
+    staleTime: 1000 * 60 * 10, // 10 minutes cache
+    refetchOnWindowFocus: false,
+    placeholderData: CURRENT_APP_VERSION,
+  })
+
+  return data ?? CURRENT_APP_VERSION
 }

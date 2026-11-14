@@ -43,10 +43,6 @@ export const HomePage: React.FC = () => {
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-b from-primary/10 via-background to-background py-12 sm:py-20 px-4 sm:px-6">
         <div className="container mx-auto max-w-4xl text-center space-y-5 sm:space-y-6">
-          <div className="inline-flex items-center space-x-2 rounded-full border bg-card px-3.5 py-1.5 text-xs font-semibold text-primary shadow-xs">
-            <Sparkles className="h-3.5 w-3.5 shrink-0" />
-            <span>Smart Tutor Matching & Verified Educators</span>
-          </div>
 
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground">
             Find Verified Tutors for <span className="text-primary">Your Exact Goals</span>

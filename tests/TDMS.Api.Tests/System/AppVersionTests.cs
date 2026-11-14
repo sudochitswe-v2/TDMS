@@ -1,11 +1,20 @@
+using System.Net.Http.Json;
 using FluentAssertions;
+using Microsoft.AspNetCore.Mvc.Testing;
 using TDMS.Api.Abstructions;
 using Xunit;
 
 namespace TDMS.Api.Tests.System;
 
-public class AppVersionTests
+public class AppVersionTests : IClassFixture<WebApplicationFactory<Program>>
 {
+    private readonly WebApplicationFactory<Program> _factory;
+
+    public AppVersionTests(WebApplicationFactory<Program> factory)
+    {
+        _factory = factory;
+    }
+
     [Fact]
     public void Parse_WithChannelSuffix_ShouldIdentifyVersionAndChannel()
     {
@@ -54,5 +63,19 @@ public class AppVersionTests
         defaultVer.Raw.Should().Be(AppVersion.DefaultVersion);
         defaultVer.Version.Should().Be("1.0.0");
         defaultVer.Channel.Should().Be("preview");
+    }
+
+    [Fact]
+    public async Task GetSystemVersionEndpoint_ShouldReturnConfiguredVersionInfo()
+    {
+        var client = _factory.CreateClient();
+        var response = await client.GetAsync("/api/system/version");
+
+        response.IsSuccessStatusCode.Should().BeTrue();
+        var versionInfo = await response.Content.ReadFromJsonAsync<AppVersionInfo>();
+        versionInfo.Should().NotBeNull();
+        versionInfo!.Raw.Should().NotBeNullOrWhiteSpace();
+        versionInfo.Version.Should().NotBeNullOrWhiteSpace();
+        versionInfo.Channel.Should().NotBeNullOrWhiteSpace();
     }
 }

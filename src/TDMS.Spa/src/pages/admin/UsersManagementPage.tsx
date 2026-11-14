@@ -139,9 +139,6 @@ export const UsersManagementPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">User Account Governance</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Manage credentials, suspend/reactivate accounts, and grant RBAC security roles
-          </p>
         </div>
       </div>
 
@@ -237,11 +234,10 @@ export const UsersManagementPage: React.FC = () => {
                           {user.roles.map((role) => (
                             <span
                               key={role}
-                              className={`px-2 py-0.5 rounded-md text-[10px] font-semibold ${
-                                role === 'SystemAdmin'
+                              className={`px-2 py-0.5 rounded-md text-[10px] font-semibold ${role === 'SystemAdmin'
                                   ? 'bg-blue-600 text-white shadow-xs'
                                   : 'bg-secondary text-foreground border'
-                              }`}
+                                }`}
                             >
                               {role}
                             </span>
@@ -271,11 +267,10 @@ export const UsersManagementPage: React.FC = () => {
                         <button
                           onClick={() => handleToggleStatus(user)}
                           disabled={statusMutation.isPending}
-                          className={`p-1.5 rounded-lg border text-xs font-semibold inline-flex items-center space-x-1 ${
-                            user.isActive
+                          className={`p-1.5 rounded-lg border text-xs font-semibold inline-flex items-center space-x-1 ${user.isActive
                               ? 'text-destructive border-destructive/20 hover:bg-destructive/10'
                               : 'text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/10'
-                          }`}
+                            }`}
                           title={user.isActive ? 'Suspend User' : 'Reactivate User'}
                         >
                           {user.isActive ? (

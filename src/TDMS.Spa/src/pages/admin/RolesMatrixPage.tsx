@@ -132,10 +132,7 @@ export const RolesMatrixPage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Role & Permission Claim Matrix (PBAC)</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Fine-grained access control: Assign discrete resource API claims and UI navigation permissions to roles
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight">Role & Permission Claim</h1>
         </div>
         <button
           onClick={() => setIsCreatingRole(true)}
@@ -234,11 +231,10 @@ export const RolesMatrixPage: React.FC = () => {
                 setErrorMsg(null)
                 setSuccessMsg(null)
               }}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 shrink-0 ${
-                isSelected
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'bg-card border text-muted-foreground hover:bg-secondary hover:text-foreground'
-              }`}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 shrink-0 ${isSelected
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'bg-card border text-muted-foreground hover:bg-secondary hover:text-foreground'
+                }`}
             >
               {role.name === 'SystemAdmin' ? (
                 <ShieldCheck className="w-4 h-4 text-amber-400" />
@@ -301,11 +297,10 @@ export const RolesMatrixPage: React.FC = () => {
                 return (
                   <label
                     key={claim}
-                    className={`flex items-center space-x-2.5 p-2.5 rounded-xl border text-xs cursor-pointer transition ${
-                      isChecked
-                        ? 'bg-primary/5 border-primary/30 font-semibold text-primary'
-                        : 'bg-background hover:bg-secondary text-muted-foreground'
-                    } ${isSystemAdminRole ? 'cursor-not-allowed opacity-90' : ''}`}
+                    className={`flex items-center space-x-2.5 p-2.5 rounded-xl border text-xs cursor-pointer transition ${isChecked
+                      ? 'bg-primary/5 border-primary/30 font-semibold text-primary'
+                      : 'bg-background hover:bg-secondary text-muted-foreground'
+                      } ${isSystemAdminRole ? 'cursor-not-allowed opacity-90' : ''}`}
                   >
                     <input
                       type="checkbox"
@@ -333,11 +328,10 @@ export const RolesMatrixPage: React.FC = () => {
                 return (
                   <label
                     key={claim}
-                    className={`flex items-center space-x-2.5 p-2.5 rounded-xl border text-xs cursor-pointer transition ${
-                      isChecked
-                        ? 'bg-blue-500/5 border-blue-500/30 font-semibold text-blue-600 dark:text-blue-400'
-                        : 'bg-background hover:bg-secondary text-muted-foreground'
-                    } ${isSystemAdminRole ? 'cursor-not-allowed opacity-90' : ''}`}
+                    className={`flex items-center space-x-2.5 p-2.5 rounded-xl border text-xs cursor-pointer transition ${isChecked
+                      ? 'bg-blue-500/5 border-blue-500/30 font-semibold text-blue-600 dark:text-blue-400'
+                      : 'bg-background hover:bg-secondary text-muted-foreground'
+                      } ${isSystemAdminRole ? 'cursor-not-allowed opacity-90' : ''}`}
                   >
                     <input
                       type="checkbox"

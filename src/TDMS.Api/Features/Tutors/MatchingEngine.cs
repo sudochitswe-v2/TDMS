@@ -1,12 +1,80 @@
+using System.Text.Json.Serialization;
+
 namespace TDMS.Api.Features.Tutors;
 
-public record MatchingWeights(
-    double W_subject = 40.0,
-    double W_fee = 25.0,
-    double W_schedule = 25.0,
-    double W_mode = 10.0
-)
+public record MatchingWeights
 {
+    private double _subject = 40.0;
+    private double _fee = 25.0;
+    private double _schedule = 25.0;
+    private double _mode = 10.0;
+
+    [JsonPropertyName("w_subject")]
+    public double W_subject
+    {
+        get => _subject;
+        init => _subject = value;
+    }
+
+    [JsonPropertyName("w_fee")]
+    public double W_fee
+    {
+        get => _fee;
+        init => _fee = value;
+    }
+
+    [JsonPropertyName("w_schedule")]
+    public double W_schedule
+    {
+        get => _schedule;
+        init => _schedule = value;
+    }
+
+    [JsonPropertyName("w_mode")]
+    public double W_mode
+    {
+        get => _mode;
+        init => _mode = value;
+    }
+
+    [JsonPropertyName("subjectWeight")]
+    public double SubjectWeight
+    {
+        get => _subject;
+        init => _subject = value;
+    }
+
+    [JsonPropertyName("feeWeight")]
+    public double FeeWeight
+    {
+        get => _fee;
+        init => _fee = value;
+    }
+
+    [JsonPropertyName("scheduleWeight")]
+    public double ScheduleWeight
+    {
+        get => _schedule;
+        init => _schedule = value;
+    }
+
+    [JsonPropertyName("modeWeight")]
+    public double ModeWeight
+    {
+        get => _mode;
+        init => _mode = value;
+    }
+
+    public MatchingWeights() { }
+
+    public MatchingWeights(double w_subject, double w_fee, double w_schedule, double w_mode)
+    {
+        _subject = w_subject;
+        _fee = w_fee;
+        _schedule = w_schedule;
+        _mode = w_mode;
+    }
+
     public bool IsValid() => Math.Abs((W_subject + W_fee + W_schedule + W_mode) - 100.0) < 0.001;
 }
 

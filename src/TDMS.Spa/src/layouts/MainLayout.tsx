@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth, HasPermission } from '../context/AuthContext'
-import { CURRENT_APP_VERSION, getChannelBadgeStyle } from '../lib/version'
+import { useAppVersion, getChannelBadgeStyle } from '../lib/version'
 import {
   GraduationCap,
   MessageSquare,
@@ -20,6 +20,7 @@ import {
 
 export const MainLayout: React.FC = () => {
   const { user, isAuthenticated, logout, hasPermission } = useAuth()
+  const appVersion = useAppVersion()
   const navigate = useNavigate()
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -58,11 +59,11 @@ export const MainLayout: React.FC = () => {
               <span className="tracking-tight text-xl font-bold">TDMS</span>
               <span
                 className={`absolute -top-1.5 left-full ml-1 px-1.5 py-0.5 text-[8.5px] font-extrabold uppercase tracking-wider rounded-full border leading-none shadow-2xs whitespace-nowrap ${getChannelBadgeStyle(
-                  CURRENT_APP_VERSION.channel
+                  appVersion.channel
                 )}`}
-                title={`Release Channel: ${CURRENT_APP_VERSION.channel}`}
+                title={`Release Channel: ${appVersion.channel}`}
               >
-                {CURRENT_APP_VERSION.channel}
+                {appVersion.channel}
               </span>
             </div>
           </Link>
@@ -298,10 +299,10 @@ export const MainLayout: React.FC = () => {
               <span>— Tutor-Student Discovery and Matching System</span>
               <span
                 className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded-full border ${getChannelBadgeStyle(
-                  CURRENT_APP_VERSION.channel
+                  appVersion.channel
                 )}`}
               >
-                {CURRENT_APP_VERSION.channel}
+                {appVersion.channel}
               </span>
             </div>
             <div className="flex items-center space-x-4 text-xs">

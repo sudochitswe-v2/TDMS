@@ -147,18 +147,8 @@ export const SubscriptionsManagementPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Tutor Subscription Packages</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Configure educational plan tiers, subject listing capacities, and priority discovery boost factors
-          </p>
         </div>
-        <div className="flex items-center space-x-2">
-          <Link
-            to="/admin/subscription-payments"
-            className="flex items-center space-x-1.5 px-4 py-2 rounded-xl border bg-card hover:bg-secondary text-xs font-semibold transition shadow-xs"
-          >
-            <Receipt className="w-4 h-4 text-emerald-500" />
-            <span>Payment Verifications</span>
-          </Link>
+        <div className="flex">
           <button
             onClick={startCreate}
             className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition shadow-sm cursor-pointer"
@@ -321,77 +311,75 @@ export const SubscriptionsManagementPage: React.FC = () => {
           packages
             .slice((currentPage - 1) * pageSize, currentPage * pageSize)
             .map((pkg) => {
-            const features = parseFeatures(pkg.featuresJson)
-            return (
-              <div
-                key={pkg.id}
-                className={`p-6 rounded-2xl border bg-card shadow-sm flex flex-col justify-between space-y-5 relative ${
-                  pkg.prioritySearchBoost > 0 ? 'ring-2 ring-primary/40' : ''
-                }`}
-              >
-                {pkg.prioritySearchBoost > 0 && (
-                  <span className="absolute -top-3 right-4 px-3 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold shadow-sm uppercase tracking-wider flex items-center space-x-1">
-                    <Zap className="w-3 h-3" />
-                    <span>+{pkg.prioritySearchBoost} Priority Boost</span>
-                  </span>
-                )}
+              const features = parseFeatures(pkg.featuresJson)
+              return (
+                <div
+                  key={pkg.id}
+                  className={`p-6 rounded-2xl border bg-card shadow-sm flex flex-col justify-between space-y-5 relative ${pkg.prioritySearchBoost > 0 ? 'ring-2 ring-primary/40' : ''
+                    }`}
+                >
+                  {pkg.prioritySearchBoost > 0 && (
+                    <span className="absolute -top-3 right-4 px-3 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold shadow-sm uppercase tracking-wider flex items-center space-x-1">
+                      <Zap className="w-3 h-3" />
+                      <span>+{pkg.prioritySearchBoost} Priority Boost</span>
+                    </span>
+                  )}
 
-                <div className="space-y-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-extrabold text-lg text-foreground">{pkg.tierName}</h3>
-                      <p className="text-xs text-muted-foreground flex items-center space-x-1 mt-0.5">
-                        <Calendar className="w-3 h-3" />
-                        <span>{pkg.durationDays} days duration</span>
-                      </p>
-                    </div>
-                    <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        pkg.isActive
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="font-extrabold text-lg text-foreground">{pkg.tierName}</h3>
+                        <p className="text-xs text-muted-foreground flex items-center space-x-1 mt-0.5">
+                          <Calendar className="w-3 h-3" />
+                          <span>{pkg.durationDays} days duration</span>
+                        </p>
+                      </div>
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${pkg.isActive
                           ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
                           : 'bg-secondary text-muted-foreground border'
-                      }`}
-                    >
-                      {pkg.isActive ? 'Active' : 'Disabled'}
-                    </span>
-                  </div>
-
-                  <div className="flex items-baseline space-x-1">
-                    <span className="text-2xl sm:text-3xl font-extrabold text-foreground">
-                      {pkg.displayFee.toLocaleString()} MMK
-                    </span>
-                    <span className="text-xs text-muted-foreground">/ billing cycle</span>
-                  </div>
-
-                  <div className="space-y-2 text-xs border-t pt-4">
-                    <div className="flex items-center space-x-2 text-muted-foreground">
-                      <BookOpen className="w-4 h-4 text-primary shrink-0" />
-                      <span>
-                        Subject Slots: <strong>{pkg.maxActiveSubjects} subjects</strong>
+                          }`}
+                      >
+                        {pkg.isActive ? 'Active' : 'Disabled'}
                       </span>
                     </div>
 
-                    {features.map((feat, idx) => (
-                      <div key={idx} className="flex items-start space-x-2 text-muted-foreground">
-                        <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                        <span className="leading-tight">{feat}</span>
+                    <div className="flex items-baseline space-x-1">
+                      <span className="text-2xl sm:text-3xl font-extrabold text-foreground">
+                        {pkg.displayFee.toLocaleString()} MMK
+                      </span>
+                      <span className="text-xs text-muted-foreground">/ billing cycle</span>
+                    </div>
+
+                    <div className="space-y-2 text-xs border-t pt-4">
+                      <div className="flex items-center space-x-2 text-muted-foreground">
+                        <BookOpen className="w-4 h-4 text-primary shrink-0" />
+                        <span>
+                          Subject Slots: <strong>{pkg.maxActiveSubjects} subjects</strong>
+                        </span>
                       </div>
-                    ))}
+
+                      {features.map((feat, idx) => (
+                        <div key={idx} className="flex items-start space-x-2 text-muted-foreground">
+                          <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                          <span className="leading-tight">{feat}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t flex justify-end">
+                    <button
+                      onClick={() => startEdit(pkg)}
+                      className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border hover:bg-secondary text-xs font-semibold text-foreground transition"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                      <span>Edit Tier</span>
+                    </button>
                   </div>
                 </div>
-
-                <div className="pt-4 border-t flex justify-end">
-                  <button
-                    onClick={() => startEdit(pkg)}
-                    className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border hover:bg-secondary text-xs font-semibold text-foreground transition"
-                  >
-                    <Pencil className="w-3.5 h-3.5" />
-                    <span>Edit Tier</span>
-                  </button>
-                </div>
-              </div>
-            )
-          })
+              )
+            })
         )}
       </div>
 

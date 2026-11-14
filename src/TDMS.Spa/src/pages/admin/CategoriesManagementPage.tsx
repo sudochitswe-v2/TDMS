@@ -133,9 +133,6 @@ export const CategoriesManagementPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Subject Categories Catalog</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Curate academic and vocational subject classifications for tutor indexing and matching
-          </p>
         </div>
         <button
           onClick={startCreate}
@@ -267,52 +264,52 @@ export const CategoriesManagementPage: React.FC = () => {
                 categories
                   .slice((currentPage - 1) * pageSize, currentPage * pageSize)
                   .map((cat) => (
-                  <tr key={cat.id} className="hover:bg-secondary/20 transition">
-                    <td className="py-3 px-4 font-bold text-foreground">
-                      <div className="flex items-center space-x-2">
-                        <FolderTree className="w-4 h-4 text-primary shrink-0" />
-                        <span>{cat.name}</span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 text-muted-foreground max-w-xs truncate">
-                      {cat.description || '—'}
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-secondary text-foreground">
-                        <GraduationCap className="w-3 h-3 mr-1 text-primary" />
-                        {cat.tutorCount} {cat.tutorCount === 1 ? 'tutor' : 'tutors'}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      {cat.isActive ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-                          Active
+                    <tr key={cat.id} className="hover:bg-secondary/20 transition">
+                      <td className="py-3 px-4 font-bold text-foreground">
+                        <div className="flex items-center space-x-2">
+                          <FolderTree className="w-4 h-4 text-primary shrink-0" />
+                          <span>{cat.name}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-muted-foreground max-w-xs truncate">
+                        {cat.description || '—'}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-secondary text-foreground">
+                          <GraduationCap className="w-3 h-3 mr-1 text-primary" />
+                          {cat.tutorCount} {cat.tutorCount === 1 ? 'tutor' : 'tutors'}
                         </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-secondary text-muted-foreground border">
-                          Disabled
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 text-right space-x-2">
-                      <button
-                        onClick={() => startEdit(cat)}
-                        className="p-1.5 rounded-lg border hover:bg-secondary text-foreground"
-                        title="Edit category"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(cat)}
-                        disabled={deleteMutation.isPending}
-                        className="p-1.5 rounded-lg border border-destructive/20 hover:bg-destructive/10 text-destructive"
-                        title="Delete category (blocked if referenced by tutors)"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td className="py-3 px-4">
+                        {cat.isActive ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                            Active
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-secondary text-muted-foreground border">
+                            Disabled
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-right space-x-2">
+                        <button
+                          onClick={() => startEdit(cat)}
+                          className="p-1.5 rounded-lg border hover:bg-secondary text-foreground"
+                          title="Edit category"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(cat)}
+                          disabled={deleteMutation.isPending}
+                          className="p-1.5 rounded-lg border border-destructive/20 hover:bg-destructive/10 text-destructive"
+                          title="Delete category (blocked if referenced by tutors)"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
               )}
             </tbody>
           </table>

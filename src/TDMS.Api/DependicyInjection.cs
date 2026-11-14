@@ -67,10 +67,8 @@ public static class DependicyInjection
         services.AddScoped<GetRoles>();
         services.AddScoped<CreateRole>();
         services.AddScoped<UpdateRoleClaims>();
-        services.AddScoped<GetSystemData>();
         services.AddScoped<GetSettings>();
         services.AddScoped<UpdateSettings>();
-        services.AddScoped<PerformDatabaseMaintenance>();
 
         // Auth Features
         services.AddScoped<Login>();
@@ -105,6 +103,8 @@ public static class DependicyInjection
         services.AddScoped<ConfirmSubscriptionPayment>();
         services.AddScoped<RejectSubscriptionPayment>();
         services.AddScoped<GetOperationsReport>();
+        services.AddScoped<GetPaymentReport>();
+        services.AddScoped<GetSubscriptionReport>();
 
         // Review Features
         services.AddScoped<GetTutorReviews>();

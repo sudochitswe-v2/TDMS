@@ -54,9 +54,6 @@ export const RegisterTutorPage: React.FC = () => {
             <Briefcase className="h-8 w-8" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight">Onboard as an Educator</h1>
-          <p className="text-xs text-muted-foreground">
-            Set your teaching rates, subjects, and weekly schedule
-          </p>
         </div>
 
         {error && (

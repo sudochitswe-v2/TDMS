@@ -65,14 +65,6 @@ public static class AdminEndpoints
         })
         .RequireAuthorization("roles:update");
 
-        // GET /api/admin/system-data
-        group.MapGet("/system-data", async (GetSystemData feature) =>
-        {
-            var result = await feature.ExecuteAsync();
-            return Results.Ok(result);
-        })
-        .RequireAuthorization("settings:read");
-
         // GET /api/admin/settings
         group.MapGet("/settings", async (GetSettings feature) =>
         {
@@ -88,14 +80,6 @@ public static class AdminEndpoints
             return result.ToHttpResult();
         })
         .RequireAuthorization("settings:update");
-
-        // POST /api/admin/database/maintenance
-        group.MapPost("/database/maintenance", async (PerformDatabaseMaintenance feature) =>
-        {
-            var result = await feature.ExecuteAsync();
-            return Results.Ok(result);
-        })
-        .RequireAuthorization("settings:maintain");
 
         return endpoints;
     }

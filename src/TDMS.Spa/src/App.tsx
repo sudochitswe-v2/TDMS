@@ -26,10 +26,11 @@ import { CategoriesManagementPage } from './pages/admin/CategoriesManagementPage
 import { SubscriptionsManagementPage } from './pages/admin/SubscriptionsManagementPage'
 import { SubscriptionPaymentsPage } from './pages/admin/SubscriptionPaymentsPage'
 import { ReportsAnalyticsPage } from './pages/admin/ReportsAnalyticsPage'
+import { PaymentReportsPage } from './pages/admin/PaymentReportsPage'
+import { SubscriptionReportsPage } from './pages/admin/SubscriptionReportsPage'
 import { UsersManagementPage } from './pages/admin/UsersManagementPage'
 import { RolesMatrixPage } from './pages/admin/RolesMatrixPage'
 import { SettingsPage } from './pages/admin/SettingsPage'
-import { SystemHealthPage } from './pages/admin/SystemHealthPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -69,10 +70,11 @@ export function App() {
               <Route path="subscriptions" element={<SubscriptionsManagementPage />} />
               <Route path="subscription-payments" element={<SubscriptionPaymentsPage />} />
               <Route path="reports" element={<ReportsAnalyticsPage />} />
+              <Route path="reports/payments" element={<PaymentReportsPage />} />
+              <Route path="reports/subscriptions" element={<SubscriptionReportsPage />} />
               <Route path="users" element={<UsersManagementPage />} />
               <Route path="roles" element={<RolesMatrixPage />} />
               <Route path="settings" element={<SettingsPage />} />
-              <Route path="system-health" element={<SystemHealthPage />} />
             </Route>
 
             {/* Fallback */}

@@ -6,13 +6,15 @@ import {
   Users,
   CheckCircle2,
   Clock,
-  BookOpen,
   MessageSquare,
-  ShieldCheck,
   TrendingUp,
+  Star,
+  ShieldCheck,
   Sliders,
-  FolderTree,
-  CreditCard
+  BarChart3,
+  CreditCard,
+  Crown,
+  ArrowRight
 } from 'lucide-react'
 
 interface ReportsSummary {
@@ -29,7 +31,7 @@ interface ReportsSummary {
 }
 
 export const AdminOverviewPage: React.FC = () => {
-  const { data, isLoading } = useQuery<ReportsSummary>({
+  const { data } = useQuery<ReportsSummary>({
     queryKey: ['adminOverviewReports'],
     queryFn: () => api.get('/api/operations/reports'),
   })
@@ -45,29 +47,38 @@ export const AdminOverviewPage: React.FC = () => {
     totalReviews: 0,
   }
 
+  const tutorVerificationRate =
+    stats.totalTutors > 0
+      ? Math.round((stats.verifiedTutors / stats.totalTutors) * 100)
+      : 0
+
+  const inquiryConversionRate =
+    stats.totalInquiries > 0
+      ? Math.round((stats.acceptedInquiries / stats.totalInquiries) * 100)
+      : 0
+
   return (
     <div className="space-y-8">
-      <div>
+      {/* <div>
         <h1 className="text-2xl font-bold tracking-tight">Platform Governance & Operational Dashboard</h1>
-        <p className="text-xs text-muted-foreground mt-1">
-          System-wide marketplace analytics, tutor credential verifications, and access control governance
-        </p>
-      </div>
+      </div> */}
 
       {/* Metric Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-5 rounded-2xl border bg-card space-y-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Total Accounts */}
+        <div className="p-5 rounded-2xl border bg-card space-y-2 shadow-2xs">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-semibold">Total Accounts</span>
             <Users className="h-4 w-4 text-blue-500" />
           </div>
           <p className="text-3xl font-extrabold">{stats.totalUsers}</p>
           <p className="text-[11px] text-muted-foreground">
-            {stats.totalLearners} Learners • {stats.totalTutors} Educators
+            {stats.totalLearners} Learners &bull; {stats.totalTutors} Educators
           </p>
         </div>
 
-        <div className="p-5 rounded-2xl border bg-card space-y-2">
+        {/* Tutor Verifications Pending */}
+        <div className="p-5 rounded-2xl border bg-card space-y-2 shadow-2xs">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-semibold">Tutor Verifications</span>
             <Clock className="h-4 w-4 text-amber-500" />
@@ -83,10 +94,23 @@ export const AdminOverviewPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="p-5 rounded-2xl border bg-card space-y-2">
+        {/* Tutor Verification Rate */}
+        <div className="p-5 rounded-2xl border bg-card space-y-2 shadow-2xs">
+          <div className="flex items-center justify-between text-muted-foreground">
+            <span className="text-xs font-semibold">Tutor Verification Rate</span>
+            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+          </div>
+          <p className="text-3xl font-extrabold">{tutorVerificationRate}%</p>
+          <p className="text-[11px] text-muted-foreground">
+            {stats.verifiedTutors} of {stats.totalTutors} educators verified
+          </p>
+        </div>
+
+        {/* Total Inquiries */}
+        <div className="p-5 rounded-2xl border bg-card space-y-2 shadow-2xs">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-semibold">Total Inquiries</span>
-            <MessageSquare className="h-4 w-4 text-emerald-500" />
+            <MessageSquare className="h-4 w-4 text-primary" />
           </div>
           <p className="text-3xl font-extrabold">{stats.totalInquiries}</p>
           <p className="text-[11px] text-muted-foreground">
@@ -94,56 +118,27 @@ export const AdminOverviewPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="p-5 rounded-2xl border bg-card space-y-2">
+        {/* Inquiry Conversion Rate */}
+        <div className="p-5 rounded-2xl border bg-card space-y-2 shadow-2xs">
+          <div className="flex items-center justify-between text-muted-foreground">
+            <span className="text-xs font-semibold">Inquiry Conversion</span>
+            <TrendingUp className="h-4 w-4 text-teal-500" />
+          </div>
+          <p className="text-3xl font-extrabold">{inquiryConversionRate}%</p>
+          <p className="text-[11px] text-muted-foreground">
+            {stats.acceptedInquiries} of {stats.totalInquiries} inquiries accepted
+          </p>
+        </div>
+
+        {/* Student Feedback */}
+        <div className="p-5 rounded-2xl border bg-card space-y-2 shadow-2xs">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-semibold">Student Feedback</span>
-            <CheckCircle2 className="h-4 w-4 text-purple-500" />
+            <Star className="h-4 w-4 text-amber-500" />
           </div>
           <p className="text-3xl font-extrabold">{stats.totalReviews}</p>
           <p className="text-[11px] text-muted-foreground">Verified Star Ratings</p>
         </div>
-      </div>
-
-      {/* Quick Access Control Shortcuts */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Link
-          to="/admin/tutor-verifications"
-          className="p-6 rounded-2xl border bg-card hover:border-primary/50 hover:shadow-md transition space-y-2"
-        >
-          <div className="p-3 rounded-xl bg-amber-500/10 text-amber-600 w-fit">
-            <ShieldCheck className="h-6 w-6" />
-          </div>
-          <h3 className="font-bold text-base">Tutor Verifications</h3>
-          <p className="text-xs text-muted-foreground">
-            Inspect uploaded ID documents and certificates to approve or reject freelance educators.
-          </p>
-        </Link>
-
-        <Link
-          to="/admin/roles"
-          className="p-6 rounded-2xl border bg-card hover:border-primary/50 hover:shadow-md transition space-y-2"
-        >
-          <div className="p-3 rounded-xl bg-blue-500/10 text-blue-600 w-fit">
-            <ShieldCheck className="h-6 w-6" />
-          </div>
-          <h3 className="font-bold text-base">PBAC Claims & Roles Matrix</h3>
-          <p className="text-xs text-muted-foreground">
-            Configure permission checkboxes for all API action gates and UI menu claims.
-          </p>
-        </Link>
-
-        <Link
-          to="/admin/settings"
-          className="p-6 rounded-2xl border bg-card hover:border-primary/50 hover:shadow-md transition space-y-2"
-        >
-          <div className="p-3 rounded-xl bg-primary/10 text-primary w-fit">
-            <Sliders className="h-6 w-6" />
-          </div>
-          <h3 className="font-bold text-base">Algorithm Matching Weights</h3>
-          <p className="text-xs text-muted-foreground">
-            Adjust subject, fee linear decay, schedule slot, and mode weights totaling 100%.
-          </p>
-        </Link>
       </div>
     </div>
   )

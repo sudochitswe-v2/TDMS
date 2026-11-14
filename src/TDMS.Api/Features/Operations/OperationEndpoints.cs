@@ -170,6 +170,22 @@ public static class OperationEndpoints
         })
         .RequireAuthorization("reports:read");
 
+        // GET /api/operations/reports/payments
+        group.MapGet("/operations/reports/payments", async (GetPaymentReport feature) =>
+        {
+            var result = await feature.ExecuteAsync();
+            return Results.Ok(result);
+        })
+        .RequireAuthorization("reports:read");
+
+        // GET /api/operations/reports/subscriptions
+        group.MapGet("/operations/reports/subscriptions", async (GetSubscriptionReport feature) =>
+        {
+            var result = await feature.ExecuteAsync();
+            return Results.Ok(result);
+        })
+        .RequireAuthorization("reports:read");
+
         return endpoints;
     }
 }

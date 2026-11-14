@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth, HasPermission, RequirePermission } from '../context/AuthContext'
-import { CURRENT_APP_VERSION } from '../lib/version'
+import { useAppVersion } from '../lib/version'
 import {
   ShieldCheck,
   LayoutDashboard,
@@ -10,10 +10,10 @@ import {
   CreditCard,
   Receipt,
   BarChart3,
+  Crown,
   Users,
   KeyRound,
   Sliders,
-  Activity,
   ArrowLeft,
   LogOut,
   ChevronLeft,
@@ -26,6 +26,7 @@ import {
 
 export const AdminLayout: React.FC = () => {
   const { user, logout } = useAuth()
+  const appVersion = useAppVersion()
   const navigate = useNavigate()
   const location = useLocation()
   const [collapsed, setCollapsed] = useState(false)
@@ -86,18 +87,18 @@ export const AdminLayout: React.FC = () => {
                   <span className="font-bold text-base tracking-tight shrink-0">TDMS Control</span>
                   <span
                     className="absolute -top-2 left-full ml-1 px-1.5 py-0.5 text-[8px] font-mono font-bold rounded-full bg-primary/15 text-primary border border-primary/25 leading-none shadow-2xs whitespace-nowrap"
-                    title={`Application Version: ${CURRENT_APP_VERSION.raw}`}
+                    title={`Application Version: ${appVersion.raw}`}
                   >
-                    v{CURRENT_APP_VERSION.raw}
+                    v{appVersion.raw}
                   </span>
                 </div>
               </div>
             )}
             {collapsed && !mobileOpen && (
-              <div className="relative mx-auto flex items-center justify-center" title={`Application Version: ${CURRENT_APP_VERSION.raw}`}>
+              <div className="relative mx-auto flex items-center justify-center" title={`Application Version: ${appVersion.raw}`}>
                 <ShieldCheck className="h-6 w-6 text-primary" />
                 <span className="absolute -top-1 -right-2 px-1 py-0.2 text-[7.5px] font-mono font-bold rounded-full bg-primary text-primary-foreground leading-none shadow-xs">
-                  v{CURRENT_APP_VERSION.version.split('.')[0]}
+                  v{appVersion.version.split('.')[0]}
                 </span>
               </div>
             )}
@@ -184,6 +185,22 @@ export const AdminLayout: React.FC = () => {
                   <BarChart3 className="h-5 w-5 shrink-0" />
                   {(!collapsed || mobileOpen) && <span>Activity & Demand</span>}
                 </Link>
+                <Link
+                  to="/admin/reports/payments"
+                  onClick={() => setMobileOpen(false)}
+                  className={navItemClass('/admin/reports/payments')}
+                >
+                  <Receipt className="h-5 w-5 shrink-0 text-emerald-500" />
+                  {(!collapsed || mobileOpen) && <span>Payment Reports</span>}
+                </Link>
+                <Link
+                  to="/admin/reports/subscriptions"
+                  onClick={() => setMobileOpen(false)}
+                  className={navItemClass('/admin/reports/subscriptions')}
+                >
+                  <Crown className="h-5 w-5 shrink-0 text-amber-500" />
+                  {(!collapsed || mobileOpen) && <span>Subscription Reports</span>}
+                </Link>
               </div>
             </HasPermission>
 
@@ -218,13 +235,6 @@ export const AdminLayout: React.FC = () => {
                 >
                   <Sliders className="h-5 w-5 shrink-0" />
                   {(!collapsed || mobileOpen) && <span>Matching Weights</span>}
-                </Link>
-                <Link
-                  to="/admin/system-health"
-                  onClick={() => setMobileOpen(false)}
-                  className={navItemClass('/admin/system-health')}>
-                  <Activity className="h-5 w-5 shrink-0" />
-                  {(!collapsed || mobileOpen) && <span>System & DB Health</span>}
                 </Link>
               </div>
             </HasPermission>
@@ -307,7 +317,7 @@ export const AdminLayout: React.FC = () => {
               <div className="flex items-center space-x-2">
                 <span>Powered by <span className="font-semibold text-foreground">TDMS Platform</span></span>
                 <span>•</span>
-                <span className="font-mono text-[11px] bg-secondary px-1.5 py-0.5 rounded text-secondary-foreground font-medium">v{CURRENT_APP_VERSION.version}</span>
+                <span className="font-mono text-[11px] bg-secondary px-1.5 py-0.5 rounded text-secondary-foreground font-medium">v{appVersion.version}</span>
               </div>
               <p className="text-[11px]">© {new Date().getFullYear()} TDMS. All rights reserved.</p>
             </footer>

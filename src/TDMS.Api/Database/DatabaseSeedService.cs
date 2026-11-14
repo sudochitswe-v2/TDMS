@@ -541,7 +541,8 @@ public class DatabaseSeedService
                     IsPublished = true,
                     AverageRating = 0.00m,
                     TotalReviewsCount = 0,
-                    CurrentSubscriptionPackageId = proPackage?.Id
+                    CurrentSubscriptionPackageId = proPackage?.Id,
+                    SubscriptionUpdatedAt = DateTime.UtcNow.AddDays(-10)
                 };
                 _context.TutorProfiles.Add(tutorProfile);
                 await _context.SaveChangesAsync();
@@ -1039,6 +1040,14 @@ public class DatabaseSeedService
             .Include(t => t.User)
             .FirstOrDefaultAsync(t => t.User.Email == "tutor.chemistry@tdms.local");
 
+        var mathTutor = await _context.TutorProfiles
+            .Include(t => t.User)
+            .FirstOrDefaultAsync(t => t.User.Email == "tutor.math@tdms.local");
+
+        var biologyTutor = await _context.TutorProfiles
+            .Include(t => t.User)
+            .FirstOrDefaultAsync(t => t.User.Email == "tutor.biology@tdms.local");
+
         var masterPackage = await _context.SubscriptionPackages
             .FirstOrDefaultAsync(p => p.TierName == "Master Tutor");
 
@@ -1048,6 +1057,46 @@ public class DatabaseSeedService
         var opsUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == "ops@tdms.local");
 
         var sampleScreenshot = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+
+        if (mathTutor != null && masterPackage != null)
+        {
+            _context.SubscriptionPayments.Add(new SubscriptionPayment
+            {
+                TutorProfileId = mathTutor.Id,
+                SubscriptionPackageId = masterPackage.Id,
+                Amount = masterPackage.DisplayFee,
+                PaymentMethod = "KBZPay",
+                TransactionLast6 = "554433",
+                ScreenshotUrl = sampleScreenshot,
+                Notes = "Annual subscription payment for Master Tutor package verified via KBZPay QR code.",
+                Status = "Confirmed",
+                ReviewedByUserId = opsUser?.Id,
+                ReviewedAt = DateTime.UtcNow.AddDays(-10),
+                CreatedAt = DateTime.UtcNow.AddDays(-10)
+            });
+            mathTutor.CurrentSubscriptionPackageId = masterPackage.Id;
+            mathTutor.SubscriptionUpdatedAt = DateTime.UtcNow.AddDays(-10);
+        }
+
+        if (biologyTutor != null && proPackage != null)
+        {
+            _context.SubscriptionPayments.Add(new SubscriptionPayment
+            {
+                TutorProfileId = biologyTutor.Id,
+                SubscriptionPackageId = proPackage.Id,
+                Amount = proPackage.DisplayFee,
+                PaymentMethod = "AYAPay",
+                TransactionLast6 = "778899",
+                ScreenshotUrl = sampleScreenshot,
+                Notes = "Pro Educator subscription renewal via AYA Pay.",
+                Status = "Confirmed",
+                ReviewedByUserId = opsUser?.Id,
+                ReviewedAt = DateTime.UtcNow.AddDays(-3),
+                CreatedAt = DateTime.UtcNow.AddDays(-3)
+            });
+            biologyTutor.CurrentSubscriptionPackageId = proPackage.Id;
+            biologyTutor.SubscriptionUpdatedAt = DateTime.UtcNow.AddDays(-3);
+        }
 
         if (physicsTutor != null && masterPackage != null)
         {

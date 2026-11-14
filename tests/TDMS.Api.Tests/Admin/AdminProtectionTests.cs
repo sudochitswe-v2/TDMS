@@ -1,3 +1,4 @@
+using System.Text.Json;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using TDMS.Api.Abstructions;
@@ -32,6 +33,28 @@ public class AdminProtectionTests
         // Invalid (40 + 20 + 20 + 10 = 90)
         var invalid2 = new MatchingWeights(40, 20, 20, 10);
         invalid2.IsValid().Should().BeFalse();
+    }
+
+    [Fact]
+    public void MatchingWeights_JsonCompatibility_ShouldSupportBothNamingSchemes()
+    {
+        var jsonWithSubjectWeight = """{"subjectWeight":40,"feeWeight":25,"scheduleWeight":20,"modeWeight":15}""";
+        var parsed1 = JsonSerializer.Deserialize<MatchingWeights>(jsonWithSubjectWeight);
+        parsed1.Should().NotBeNull();
+        parsed1!.W_subject.Should().Be(40);
+        parsed1.W_fee.Should().Be(25);
+        parsed1.W_schedule.Should().Be(20);
+        parsed1.W_mode.Should().Be(15);
+        parsed1.IsValid().Should().BeTrue();
+
+        var jsonWithWSubject = """{"w_subject":35,"w_fee":35,"w_schedule":15,"w_mode":15}""";
+        var parsed2 = JsonSerializer.Deserialize<MatchingWeights>(jsonWithWSubject);
+        parsed2.Should().NotBeNull();
+        parsed2!.W_subject.Should().Be(35);
+        parsed2.W_fee.Should().Be(35);
+        parsed2.W_schedule.Should().Be(15);
+        parsed2.W_mode.Should().Be(15);
+        parsed2.IsValid().Should().BeTrue();
     }
 
     [Fact]

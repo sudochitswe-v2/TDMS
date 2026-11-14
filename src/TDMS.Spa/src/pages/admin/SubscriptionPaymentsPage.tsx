@@ -146,9 +146,6 @@ export const SubscriptionPaymentsPage: React.FC = () => {
             <Receipt className="h-6 w-6 text-primary" />
             <span>Tutor Subscription Payment Verifications</span>
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Verify manual third-party payment receipts (KBZPay, WavePay, AYA Pay, Bank Transfer) and activate tier subscriptions
-          </p>
         </div>
         <div className="flex items-center space-x-2">
           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
@@ -177,41 +174,37 @@ export const SubscriptionPaymentsPage: React.FC = () => {
         <div className="flex items-center space-x-1.5 p-1 rounded-xl bg-secondary/40 border w-fit">
           <button
             onClick={() => setStatusFilter('pending')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition cursor-pointer ${
-              statusFilter === 'pending'
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition cursor-pointer ${statusFilter === 'pending'
                 ? 'bg-card text-foreground shadow-xs'
                 : 'text-muted-foreground hover:text-foreground'
-            }`}
+              }`}
           >
             Pending Review
           </button>
           <button
             onClick={() => setStatusFilter('confirmed')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition cursor-pointer ${
-              statusFilter === 'confirmed'
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition cursor-pointer ${statusFilter === 'confirmed'
                 ? 'bg-card text-foreground shadow-xs'
                 : 'text-muted-foreground hover:text-foreground'
-            }`}
+              }`}
           >
             Confirmed
           </button>
           <button
             onClick={() => setStatusFilter('rejected')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition cursor-pointer ${
-              statusFilter === 'rejected'
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition cursor-pointer ${statusFilter === 'rejected'
                 ? 'bg-card text-foreground shadow-xs'
                 : 'text-muted-foreground hover:text-foreground'
-            }`}
+              }`}
           >
             Rejected
           </button>
           <button
             onClick={() => setStatusFilter('all')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition cursor-pointer ${
-              statusFilter === 'all'
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition cursor-pointer ${statusFilter === 'all'
                 ? 'bg-card text-foreground shadow-xs'
                 : 'text-muted-foreground hover:text-foreground'
-            }`}
+              }`}
           >
             All Payments
           </button>
@@ -251,19 +244,18 @@ export const SubscriptionPaymentsPage: React.FC = () => {
                   <div className="flex items-center space-x-3">
                     <h2 className="text-lg font-bold">{payment.tutorName}</h2>
                     <span
-                      className={`text-xs px-2.5 py-0.5 rounded-full font-semibold border ${
-                        payment.status === 'Confirmed'
+                      className={`text-xs px-2.5 py-0.5 rounded-full font-semibold border ${payment.status === 'Confirmed'
                           ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
                           : payment.status === 'Rejected'
-                          ? 'bg-destructive/10 text-destructive border-destructive/20'
-                          : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
-                      }`}
+                            ? 'bg-destructive/10 text-destructive border-destructive/20'
+                            : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                        }`}
                     >
                       {payment.status === 'Confirmed'
                         ? 'Confirmed & Active'
                         : payment.status === 'Rejected'
-                        ? 'Rejected'
-                        : 'Pending Verification'}
+                          ? 'Rejected'
+                          : 'Pending Verification'}
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground">{payment.tutorEmail}</p>

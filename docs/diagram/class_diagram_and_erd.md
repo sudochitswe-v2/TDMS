@@ -1,79 +1,140 @@
 # TDMS — System Architecture: Class Diagram & Entity-Relationship Diagram (ERD)
 
-This document provides the formal architectural diagrams and data specifications for the **Student-Tutor Discovery and Matching System (TDMS)**. It captures:
-1. **Entity-Relationship Diagram (ERD)** reflecting the 3NF MariaDB relational model with keys, constraints, and referential actions.
-2. **Domain Entities Class Diagram** with both member attributes and domain/lifecycle functions.
-3. **Architecture & Services Class Diagram** detailing business logic methods, security handlers, matching engine algorithms, and Firebase integrations.
-4. **Vertical Slice Endpoints Class Diagram** displaying Minimal API mapping methods, HTTP route handlers, and authorization policies.
-5. **Class Functional Responsibilities Directory** outlining the concrete role, business rules, and function of every class in the architecture.
+This document provides the formal architectural diagrams and data specifications for the **Student-Tutor Discovery and Matching System (TDMS)**. It is structured into the following sections:
+
+1. **Initial Domain Model (Conceptual ERD — Pure Entity Relations & Many-to-Many):** Pure conceptual model containing only core business entities and direct Many-to-Many ($M:N$) associations with **zero intersection / junction / dummy entities**.
+2. **Detailed Physical ERD:** Full 3NF database schema showing physical intersection tables (`UserRoles`, `LearnerRequirementCategories`, `TutorCategories`), MariaDB column types, keys, and cascading actions.
+3. **Domain Entities Class Diagram:** Object-oriented representation of domain models with properties and lifecycle/business methods.
+4. **Architecture & Services Class Diagram:** System infrastructure, security handlers, deterministic matching engine, and messaging services with function signatures.
+5. **Vertical Slice Endpoints Class Diagram:** Minimal API endpoint groups with HTTP handlers and authorization policies.
+6. **Class Functional Responsibilities Directory:** Exhaustive reference explaining the purpose, business rules, and function of every class.
 
 ---
 
-## 1. Entity-Relationship Diagram (ERD)
+## 1. Initial Domain Model (Conceptual ERD — Entity Relations Only)
 
-The TDMS database uses **MariaDB** managed via **EF Core 10** with normalized relational tables (3NF), strict foreign keys, unique constraints, and referential actions (`CASCADE`, `RESTRICT`, and `SET NULL`).
+The **Initial Domain Model** represents the pure business entities and high-level domain concepts of TDMS. 
 
-### 1.1 Visual ERD (Mermaid)
+> [!IMPORTANT]
+> **No Intersection / Dummy Entities:** In accordance with conceptual modeling standards, relational junction/dummy tables (such as `UserRoles`, `LearnerRequirementCategories`, and `TutorCategories`) are **omitted**. Instead, direct **Many-to-Many ($M:N$)** relationships are modeled directly between the participating business entities.
+
+### 1.1 Conceptual Entity Relationships Diagram (Mermaid)
 
 ```mermaid
 erDiagram
-    %% ==========================================
+    %% ====================================================
+    %% Direct Many-to-Many Relationships (No Intersection Tables)
+    %% ====================================================
+    User }o--o{ Role : "assigned_to (M:N)"
+    LearnerProfile }o--o{ Category : "requests_subject (M:N)"
+    TutorProfile }o--o{ Category : "teaches_subject (M:N)"
+
+    %% ====================================================
+    %% One-to-One Profiles
+    %% ====================================================
+    User ||--o| LearnerProfile : "owns_learner_profile (1:1)"
+    User ||--o| TutorProfile : "owns_tutor_profile (1:1)"
+
+    %% ====================================================
+    %% Learner & Tutor Domain Details
+    %% ====================================================
+    LearnerProfile ||--o{ LearnerScheduleSlot : "specifies_slot (1:N)"
+    TutorProfile ||--o{ TutorScheduleSlot : "available_at_slot (1:N)"
+    TutorProfile ||--o{ TutorDocument : "submits_credentials (1:N)"
+
+    %% ====================================================
+    %% Subscriptions & Operational Governance
+    %% ====================================================
+    SubscriptionPackage ||--o{ TutorProfile : "subscribed_by (1:N)"
+    SubscriptionPackage ||--o{ SubscriptionPayment : "billed_under (1:N)"
+    TutorProfile ||--o{ SubscriptionPayment : "submits_payment (1:N)"
+
+    %% Administrative Audits / Governance
+    User ||--o{ TutorProfile : "verifies (1:N)"
+    User ||--o{ SubscriptionPayment : "reviews_and_approves (1:N)"
+    User ||--o{ SearchAuditLog : "performs_search (1:N)"
+    Category ||--o{ SearchAuditLog : "targeted_subject (1:N)"
+
+    %% ====================================================
+    %% Communications & Feedback
+    %% ====================================================
+    User ||--o{ Inquiry : "initiates_as_learner (1:N)"
+    TutorProfile ||--o{ Inquiry : "receives_as_tutor (1:N)"
+    Category ||--o{ Inquiry : "inquired_subject (1:N)"
+
+    User ||--o{ Review : "writes_as_learner (1:N)"
+    TutorProfile ||--o{ Review : "evaluated_by (1:N)"
+```
+
+### 1.2 Conceptual Relationship Semantics & De-Junctioning Matrix
+
+| Relationship | Type | Conceptual Semantic Meaning | Physical Relational Resolution in 3NF Schema |
+| :--- | :---: | :--- | :--- |
+| **`User` $\leftrightarrow$ `Role`** | **$M:N$** | A user can be assigned multiple security roles; a role belongs to multiple users. | Resolved via junction table **`UserRoles`** with composite PK `(UserId, RoleId)`. |
+| **`LearnerProfile` $\leftrightarrow$ `Category`** | **$M:N$** | A parent or student can request tutoring across multiple subject categories; a category is requested by multiple learners. | Resolved via intersection table **`LearnerRequirementCategories`**. |
+| **`TutorProfile` $\leftrightarrow$ `Category`** | **$M:N$** | A tutor can teach multiple subject categories; a category is offered by multiple tutors. | Resolved via intersection table **`TutorCategories`** (with grade target metadata). |
+| **`User` $\rightarrow$ `LearnerProfile`** | **$1:0..1$** | A user owns at most one learner profile (`Parent` or `Student`). | 1:1 relation with unique foreign key `UserId`. |
+| **`User` $\rightarrow$ `TutorProfile`** | **$1:0..1$** | A user registers at most one tutor profile. | 1:1 relation with unique foreign key `UserId`. |
+| **`User` (Admin) $\rightarrow$ `TutorProfile`** | **$1:0..N$** | An operation admin reviews and approves/rejects tutor credentials. | Foreign key `VerifiedByUserId` (`SET NULL`). |
+| **`User` (Admin) $\rightarrow$ `SubscriptionPayment`**| **$1:0..N$** | An operation admin verifies and confirms offline subscription payments. | Foreign key `ReviewedByUserId` (`SET NULL`). |
+| **`SubscriptionPackage` $\rightarrow$ `TutorProfile`** | **$1:0..N$** | Tutors subscribe to an operational tier package (Free, Silver, Gold). | Foreign key `CurrentSubscriptionPackageId` (`SET NULL`). |
+| **`TutorProfile` $\rightarrow$ `SubscriptionPayment`** | **$1:0..N$** | A tutor submits payment proofs (screenshots, transaction IDs) for paid tiers. | Foreign key `TutorProfileId` (`CASCADE`). |
+| **`LearnerProfile` $\rightarrow$ `LearnerScheduleSlot`**| **$1:0..N$** | A learner defines recurring preferred lesson slots. | Foreign key `LearnerProfileId` (`CASCADE`). |
+| **`TutorProfile` $\rightarrow$ `TutorScheduleSlot`** | **$1:0..N$** | A tutor declares weekly teaching availability windows. | Foreign key `TutorProfileId` (`CASCADE`). |
+| **`TutorProfile` $\rightarrow$ `TutorDocument`** | **$1:0..N$** | A tutor uploads verification identity files and certificates. | Foreign key `TutorProfileId` (`CASCADE`). |
+| **`User` / `TutorProfile` $\rightarrow$ `Inquiry`** | **$1:0..N$** | Direct handshake inquiry sent from a learner user to a tutor profile. | Foreign keys `LearnerUserId` and `TutorProfileId`. |
+| **`User` / `TutorProfile` $\rightarrow$ `Review`** | **$1:0..N$** | A learner user writes a review evaluating a tutor profile (max 1 per pair). | Unique constraint on `(LearnerUserId, TutorProfileId)`. |
+
+---
+
+## 2. Detailed Physical ERD (Tables, Attributes & Constraints)
+
+The physical database is **MariaDB** managed via **EF Core 10**. This model displays the complete 3NF physical schema, including junction/intersection tables (`UserRoles`, `LearnerRequirementCategories`, `TutorCategories`), column types, keys (`PK`, `FK`, `UK`), and cascading actions.
+
+### 2.1 Physical ERD (Mermaid)
+
+```mermaid
+erDiagram
     %% IAM & Access Control
-    %% ==========================================
     Users ||--o{ UserRoles : "assigned_to (CASCADE)"
     Roles ||--o{ UserRoles : "has_role (CASCADE)"
     Roles ||--o{ RoleClaims : "grants (CASCADE)"
 
-    %% ==========================================
     %% 1:1 Profiles
-    %% ==========================================
     Users ||--o| LearnerProfiles : "owns_learner (CASCADE)"
     Users ||--o| TutorProfiles : "owns_tutor (CASCADE)"
 
-    %% ==========================================
     %% Admin & Operational Audits
-    %% ==========================================
     Users ||--o{ TutorProfiles : "verified_by (SET NULL)"
     Users ||--o{ SubscriptionPayments : "reviewed_by (SET NULL)"
     Users ||--o{ SearchAuditLogs : "searched_by (SET NULL)"
 
-    %% ==========================================
     %% Learner Domain
-    %% ==========================================
     LearnerProfiles ||--o{ LearnerRequirementCategories : "specifies (CASCADE)"
     Categories ||--o{ LearnerRequirementCategories : "tagged_in (RESTRICT)"
     LearnerProfiles ||--o{ LearnerScheduleSlots : "availability (CASCADE)"
 
-    %% ==========================================
     %% Tutor Domain
-    %% ==========================================
     TutorProfiles ||--o{ TutorDocuments : "submits (CASCADE)"
     TutorProfiles ||--o{ TutorCategories : "teaches (CASCADE)"
     Categories ||--o{ TutorCategories : "taught_by (RESTRICT)"
     TutorProfiles ||--o{ TutorScheduleSlots : "available_at (CASCADE)"
 
-    %% ==========================================
     %% Subscription & Tier Domain
-    %% ==========================================
     SubscriptionPackages ||--o{ TutorProfiles : "enrolled_in (SET NULL)"
     SubscriptionPackages ||--o{ SubscriptionPayments : "billed_under (RESTRICT)"
     TutorProfiles ||--o{ SubscriptionPayments : "submits_payment (CASCADE)"
 
-    %% ==========================================
     %% Inquiry, Real-Time Messaging & Feedback
-    %% ==========================================
     Users ||--o{ Inquiries : "initiated_by_learner (RESTRICT)"
     TutorProfiles ||--o{ Inquiries : "targeted_tutor (CASCADE)"
-    Categories ||--o{ Inquiries : "inquiry_subject (RESTRICT)"
+    Categories ||--o{ Inquiry : "inquiry_subject (RESTRICT)"
 
     Users ||--o{ Reviews : "authored_by_learner (RESTRICT)"
     TutorProfiles ||--o{ Reviews : "reviewed_tutor (CASCADE)"
 
     Categories ||--o{ SearchAuditLogs : "searched_subject (SET NULL)"
 
-    %% ==========================================
-    %% Table Attribute Specifications
-    %% ==========================================
     Users {
         string Id PK "CHAR(36) GUID"
         string Email UK "VARCHAR(150)"
@@ -254,7 +315,7 @@ erDiagram
     }
 ```
 
-### 1.2 Referential Integrity & Cascade Actions Matrix
+### 2.2 Referential Integrity & Cascade Actions Matrix
 
 | Table | Primary Key | Foreign Key(s) & Target | Constraints & Unique Keys | Referential Cascade Action |
 | :--- | :--- | :--- | :--- | :--- |
@@ -279,7 +340,7 @@ erDiagram
 
 ---
 
-## 2. Domain Entities Class Diagram (With Methods & Functions)
+## 3. Domain Entities Class Diagram (With Methods & Functions)
 
 This diagram shows all entity models defined in [src/TDMS.Api/Database/Entities](file:///home/chitswe/Projects/2026/TDMS/src/TDMS.Api/Database/Entities), including properties, domain functions, and invariants.
 
@@ -287,18 +348,12 @@ This diagram shows all entity models defined in [src/TDMS.Api/Database/Entities]
 classDiagram
     direction TB
 
-    %% ==========================================
-    %% Auditable Interface
-    %% ==========================================
     class IAuditableEntity {
         <<interface>>
         +DateTime CreatedAt
         +DateTime? UpdatedAt
     }
 
-    %% ==========================================
-    %% IAM Subsystem
-    %% ==========================================
     class User {
         +string Id
         +string Email
@@ -346,9 +401,6 @@ classDiagram
         +IsGranted() bool
     }
 
-    %% ==========================================
-    %% Learner Subsystem
-    %% ==========================================
     class LearnerProfile {
         +string Id
         +string UserId
@@ -389,9 +441,6 @@ classDiagram
         +GetDurationHours() double
     }
 
-    %% ==========================================
-    %% Taxonomy, Subscription & Payment Subsystem
-    %% ==========================================
     class Category {
         +int Id
         +string Name
@@ -447,9 +496,6 @@ classDiagram
         +IsPending() bool
     }
 
-    %% ==========================================
-    %% Tutor Subsystem
-    %% ==========================================
     class TutorProfile {
         +string Id
         +string UserId
@@ -525,9 +571,6 @@ classDiagram
         +GetDurationHours() double
     }
 
-    %% ==========================================
-    %% Inquiry, Review & Audit Subsystem
-    %% ==========================================
     class Inquiry {
         +string Id
         +string LearnerUserId
@@ -581,7 +624,6 @@ classDiagram
         +SetParsedValue~T~(T value) void
     }
 
-    %% Realizations
     IAuditableEntity <|.. User
     IAuditableEntity <|.. LearnerProfile
     IAuditableEntity <|.. TutorProfile
@@ -591,7 +633,6 @@ classDiagram
     IAuditableEntity <|.. Inquiry
     IAuditableEntity <|.. Review
 
-    %% Associations
     User "1" *-- "0..*" UserRole : UserRoles
     Role "1" *-- "0..*" UserRole : UserRoles
     Role "1" *-- "0..*" RoleClaim : RoleClaims
@@ -627,7 +668,7 @@ classDiagram
 
 ---
 
-## 3. Architecture & Services Class Diagram (With Methods & Functions)
+## 4. Architecture & Services Class Diagram (With Methods & Functions)
 
 This diagram documents the core business services, persistence managers, PBAC security handlers, and external messaging services, detailing every public and protected member function.
 
@@ -635,9 +676,6 @@ This diagram documents the core business services, persistence managers, PBAC se
 classDiagram
     direction TB
 
-    %% ==========================================
-    %% Persistence & Interceptors
-    %% ==========================================
     class AppDbContext {
         +DbSet~User~ Users
         +DbSet~Role~ Roles
@@ -680,9 +718,6 @@ classDiagram
         -SeedDefaultSubscriptionPaymentsAsync() Task
     }
 
-    %% ==========================================
-    %% Security & PBAC Authorization
-    %% ==========================================
     class ICurrentUser {
         <<interface>>
         +string? UserId
@@ -739,9 +774,6 @@ classDiagram
         #HandleRequirementAsync(context, requirement) Task
     }
 
-    %% ==========================================
-    %% Deterministic Matching Engine
-    %% ==========================================
     class MatchingWeights {
         <<record>>
         +double W_subject
@@ -793,9 +825,6 @@ classDiagram
         +TimeRangesOverlap(start1, end1, start2, end2)$ bool
     }
 
-    %% ==========================================
-    %% Messaging & External Integration
-    %% ==========================================
     class MessageDto {
         <<record>>
         +string Id
@@ -832,13 +861,11 @@ classDiagram
         +GetMessagesAsync(threadId, ct) Task~IReadOnlyList~MessageDto~~
     }
 
-    %% Realizations
     ICurrentUser <|.. CurrentUser
     ITokenService <|.. TokenService
     IFirebaseMessagingService <|.. FirebaseRealtimeMessagingService
     IFirebaseMessagingService <|.. MockFirebaseMessagingService
 
-    %% Service Invocations
     TokenService ..> AppDbContext : queries roles & claims
     TokenService ..> AuthResponse : creates JWT token
     DatabaseSeedService ..> AppDbContext : executes DDL & seeds
@@ -852,7 +879,7 @@ classDiagram
 
 ---
 
-## 4. Vertical Slice Endpoints Class Diagram (With Handlers & Policies)
+## 5. Vertical Slice Endpoints Class Diagram (With Handlers & Policies)
 
 Each slice in [src/TDMS.Api/Features](file:///home/chitswe/Projects/2026/TDMS/src/TDMS.Api/Features) exposes an extension method `Map*Endpoints` configuring route groups, request validation, dependencies, and authorization policies.
 
@@ -964,24 +991,24 @@ classDiagram
 
 ---
 
-## 5. Class Functional Responsibilities & Methods Directory
+## 6. Class Functional Responsibilities & Methods Directory
 
 This directory details the exact **business purpose (function)** and operational responsibilities of every class in the codebase.
 
-### 5.1 Domain Entity Classes
+### 6.1 Domain Entity Classes
 
 | Class Name | Primary Function & Responsibility | Key Methods / Member Functions |
 | :--- | :--- | :--- |
 | **`User`** | Encapsulates the master authentication identity, password hash, user status, and root associations to profiles and roles. | `Activate()`, `Deactivate()`, `SetPasswordHash(hash)` |
 | **`Role`** | Represents a system role (e.g., `ParentStudent`, `Tutor`, `OperationAdmin`, `SystemAdmin`) containing discrete permission claims. | `HasPermission(claimType)` |
-| **`UserRole`** | Many-to-many junction entity binding a `User` to assigned `Role`s. | Constructor & relational navigation |
+| **`UserRole`** | Many-to-many junction entity binding a `User` to assigned `Role`s in the physical schema. | Constructor & relational navigation |
 | **`RoleClaim`** | Represents a granular claim attached to a role (`{resource}:{action}` or `view:menu:*`). | `IsGranted()` |
 | **`LearnerProfile`** | Manages parent or student learning preferences, target hourly budget, mode, and learning notes. | `IsParent()`, `IsStudent()`, `UpdatePreferences(subType, maxFee, mode)` |
-| **`LearnerRequirementCategory`** | Associates requested subject categories with a learner's profile. | Entity relationship binding |
+| **`LearnerRequirementCategory`** | Associates requested subject categories with a learner's profile in the physical schema. | Entity relationship binding |
 | **`LearnerScheduleSlot`** | Defines preferred weekly time windows for tutoring sessions. | `OverlapsWith(day, start, end)`, `GetDurationHours()` |
 | **`TutorProfile`** | Manages tutor credentials, biography, pricing, verification status, rating aggregates, and publishing state. | `Verify(userId)`, `Reject(reason)`, `RequestReverification()`, `UpdateRating(avg, count)`, `Publish()`, `Unpublish()`, `AssignSubscription(packageId)` |
 | **`TutorDocument`** | Stores uploaded proof of identity or academic certificates (base64 data URL). | `GetSizeInKb()` |
-| **`TutorCategory`** | Maps a tutor to subjects they are qualified to teach along with target grade levels. | Entity relationship binding |
+| **`TutorCategory`** | Maps a tutor to subjects they are qualified to teach along with target grade levels in the physical schema. | Entity relationship binding |
 | **`TutorScheduleSlot`** | Defines a tutor's weekly recurring availability for lessons. | `OverlapsWith(day, start, end)`, `GetDurationHours()` |
 | **`Category`** | Represents a system-wide subject classification (e.g. Mathematics, Physics, English). | `ToggleActive(isActive)` |
 | **`SubscriptionPackage`** | Defines operational subscription tiers (duration, fee, subject limits, search priority boost). | `IsFreeTier()`, `GetParsedFeatures()` |
@@ -993,7 +1020,7 @@ This directory details the exact **business purpose (function)** and operational
 
 ---
 
-### 5.2 Core Business & Infrastructure Services
+### 6.2 Core Business & Infrastructure Services
 
 | Service / Class Name | Primary Function & Responsibility | Member Functions |
 | :--- | :--- | :--- |
@@ -1010,7 +1037,7 @@ This directory details the exact **business purpose (function)** and operational
 
 ---
 
-### 5.3 Vertical Slice Endpoint Classes (Minimal APIs)
+### 6.3 Vertical Slice Endpoint Classes (Minimal APIs)
 
 | Endpoint Group | Primary Function & Responsibility | Handled Endpoints & Operations |
 | :--- | :--- | :--- |

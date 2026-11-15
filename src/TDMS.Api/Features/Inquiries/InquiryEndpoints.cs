@@ -6,7 +6,7 @@ namespace TDMS.Api.Features.Inquiries;
 
 public record CreateInquiryRequest(
     string TutorProfileId,
-    int CategoryId,
+    string CategoryId,
     string InitialRequirementSummary
 );
 

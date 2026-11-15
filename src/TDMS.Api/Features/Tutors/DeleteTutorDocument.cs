@@ -15,7 +15,7 @@ public class DeleteTutorDocument
         _currentUser = currentUser;
     }
 
-    public async Task<ServiceResult<MessageResponse>> ExecuteAsync(int documentId)
+    public async Task<ServiceResult<MessageResponse>> ExecuteAsync(string documentId)
     {
         if (string.IsNullOrEmpty(_currentUser.UserId)) return ServiceResult<MessageResponse>.Unauthorized();
 

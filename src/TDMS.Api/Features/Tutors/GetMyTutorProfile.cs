@@ -6,7 +6,7 @@ using TDMS.Api.Features.Account;
 namespace TDMS.Api.Features.Tutors;
 
 public record TutorSubscriptionPackageDto(
-    int Id,
+    string Id,
     string TierName,
     int MaxActiveSubjects,
     int PrioritySearchBoost
@@ -27,7 +27,7 @@ public record TutorStudioProfileDto(
     int TotalReviewsCount,
     bool IsPublished,
     string? LayoutThemeJson,
-    int? CurrentSubscriptionPackageId,
+    string? CurrentSubscriptionPackageId,
     TutorSubscriptionPackageDto? SubscriptionPackage,
     List<TutorCategoryItemDto> Categories,
     List<ScheduleSlotDto> ScheduleSlots,

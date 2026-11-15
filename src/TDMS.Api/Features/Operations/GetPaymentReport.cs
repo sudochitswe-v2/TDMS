@@ -25,7 +25,7 @@ public record PaymentMethodBreakdownDto(
 );
 
 public record PaymentPackageBreakdownDto(
-    int PackageId,
+    string PackageId,
     string PackageName,
     decimal DisplayFee,
     decimal ConfirmedAmount,
@@ -42,11 +42,11 @@ public record PaymentMonthlyTrendDto(
 );
 
 public record PaymentReportItemDto(
-    int Id,
+    string Id,
     string TutorProfileId,
     string TutorName,
     string TutorEmail,
-    int PackageId,
+    string PackageId,
     string PackageName,
     decimal Amount,
     string PaymentMethod,

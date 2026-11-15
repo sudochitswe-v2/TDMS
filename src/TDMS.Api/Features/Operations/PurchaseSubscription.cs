@@ -7,7 +7,7 @@ namespace TDMS.Api.Features.Operations;
 
 public record PurchaseSubscriptionResponse(
     string Message,
-    int PaymentId,
+    string PaymentId,
     string PackageName,
     decimal Amount,
     string Status
@@ -51,7 +51,7 @@ public class PurchaseSubscription
             await _context.SaveChangesAsync();
             return ServiceResult<PurchaseSubscriptionResponse>.Ok(new PurchaseSubscriptionResponse(
                 $"Successfully activated {package.TierName} tier",
-                0,
+                string.Empty,
                 package.TierName,
                 0m,
                 "Confirmed"

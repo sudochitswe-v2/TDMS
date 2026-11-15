@@ -7,7 +7,7 @@ namespace TDMS.Api.Features.Operations;
 public record ConfirmPaymentResponse(
     string Message,
     string Status,
-    int PackageId,
+    string PackageId,
     string TierName
 );
 
@@ -22,7 +22,7 @@ public class ConfirmSubscriptionPayment
         _currentUser = currentUser;
     }
 
-    public async Task<ServiceResult<ConfirmPaymentResponse>> ExecuteAsync(int paymentId)
+    public async Task<ServiceResult<ConfirmPaymentResponse>> ExecuteAsync(string paymentId)
     {
         var payment = await _context.SubscriptionPayments
             .Include(p => p.TutorProfile).ThenInclude(t => t.User)

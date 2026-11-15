@@ -21,12 +21,12 @@ import {
 } from 'lucide-react'
 
 interface SubscriptionPaymentRecord {
-  id: number
+  id: string | number
   tutorProfileId: string
   tutorName: string
   tutorEmail: string
   currentTier: string
-  packageId: number
+  packageId: string | number
   packageName: string
   packageFee: number
   durationDays: number
@@ -50,7 +50,7 @@ export const SubscriptionPaymentsPage: React.FC = () => {
   const [pageSize, setPageSize] = useState(5)
 
   // Rejection modal state
-  const [rejectingPaymentId, setRejectingPaymentId] = useState<number | null>(null)
+  const [rejectingPaymentId, setRejectingPaymentId] = useState<string | number | null>(null)
   const [rejectionReason, setRejectionReason] = useState('')
 
   // Screenshot preview modal state
@@ -69,7 +69,7 @@ export const SubscriptionPaymentsPage: React.FC = () => {
   })
 
   const confirmMutation = useMutation({
-    mutationFn: (paymentId: number) =>
+    mutationFn: (paymentId: string | number) =>
       api.put(`/api/operations/subscriptions/payments/${paymentId}/confirm`),
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ['adminSubscriptionPayments'] })
@@ -84,7 +84,7 @@ export const SubscriptionPaymentsPage: React.FC = () => {
   })
 
   const rejectMutation = useMutation({
-    mutationFn: ({ paymentId, reason }: { paymentId: number; reason: string }) =>
+    mutationFn: ({ paymentId, reason }: { paymentId: string | number; reason: string }) =>
       api.put(`/api/operations/subscriptions/payments/${paymentId}/reject`, {
         rejectionReason: reason,
       }),
@@ -101,13 +101,13 @@ export const SubscriptionPaymentsPage: React.FC = () => {
     },
   })
 
-  const handleConfirm = (paymentId: number) => {
+  const handleConfirm = (paymentId: string | number) => {
     setActionError(null)
     setActionSuccess(null)
     confirmMutation.mutate(paymentId)
   }
 
-  const handleOpenRejectModal = (paymentId: number) => {
+  const handleOpenRejectModal = (paymentId: string | number) => {
     setRejectingPaymentId(paymentId)
     setRejectionReason('')
     setActionError(null)

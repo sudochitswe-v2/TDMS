@@ -35,7 +35,7 @@ interface TutorDetail {
   totalReviewsCount: number
   isPublished: boolean
   tierName?: string
-  categories: { categoryId: number; name: string; gradeLevelTarget?: string }[]
+  categories: { categoryId: string | number; name: string; gradeLevelTarget?: string }[]
   scheduleSlots: { dayOfWeek: number; startTime: string; endTime: string }[]
   ratingBreakdown?: Record<number, number>
   recentReviews: { id: string; learnerUserId?: string; learnerName: string; starRating: number; comment?: string | null; createdAt: string }[]
@@ -127,7 +127,7 @@ export const TutorDetailPage: React.FC = () => {
     try {
       await api.post('/api/inquiries', {
         tutorProfileId: tutor?.id,
-        categoryId: Number(selectedCategoryId),
+        categoryId: selectedCategoryId,
         initialRequirementSummary: requirementSummary.trim(),
       })
 

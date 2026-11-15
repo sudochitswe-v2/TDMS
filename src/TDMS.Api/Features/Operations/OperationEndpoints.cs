@@ -17,7 +17,7 @@ public record SaveSubscriptionPackageRequest(
     bool IsActive = true
 );
 public record PurchaseSubscriptionRequest(
-    int PackageId,
+    string PackageId,
     string PaymentMethod,
     string TransactionLast6,
     string ScreenshotBase64,
@@ -66,7 +66,7 @@ public static class OperationEndpoints
         .RequireAuthorization("categories:create");
 
         // PUT /api/categories/{id}
-        group.MapPut("/categories/{id:int}", async (int id, UpdateCategoryRequest request, UpdateCategory feature) =>
+        group.MapPut("/categories/{id}", async (string id, UpdateCategoryRequest request, UpdateCategory feature) =>
         {
             var result = await feature.ExecuteAsync(id, request);
             return result.ToHttpResult();
@@ -74,7 +74,7 @@ public static class OperationEndpoints
         .RequireAuthorization("categories:update");
 
         // DELETE /api/categories/{id}
-        group.MapDelete("/categories/{id:int}", async (int id, DeleteCategory feature) =>
+        group.MapDelete("/categories/{id}", async (string id, DeleteCategory feature) =>
         {
             var result = await feature.ExecuteAsync(id);
             return result.ToHttpResult();
@@ -99,7 +99,7 @@ public static class OperationEndpoints
         .RequireAuthorization("subscriptions:create");
 
         // PUT /api/subscriptions/{id}
-        group.MapPut("/subscriptions/{id:int}", async (int id, SaveSubscriptionPackageRequest request, UpdateSubscriptionPackage feature) =>
+        group.MapPut("/subscriptions/{id}", async (string id, SaveSubscriptionPackageRequest request, UpdateSubscriptionPackage feature) =>
         {
             var result = await feature.ExecuteAsync(id, request);
             return result.ToHttpResult();
@@ -114,7 +114,7 @@ public static class OperationEndpoints
         });
 
         // POST /api/subscriptions/{packageId}/select
-        group.MapPost("/subscriptions/{packageId:int}/select", async (int packageId, SelectSubscriptionPackage feature) =>
+        group.MapPost("/subscriptions/{packageId}/select", async (string packageId, SelectSubscriptionPackage feature) =>
         {
             var result = await feature.ExecuteAsync(packageId);
             return result.ToHttpResult();
@@ -145,16 +145,16 @@ public static class OperationEndpoints
         })
         .RequireAuthorization("subscriptions:read");
 
-        // PUT /api/operations/subscriptions/payments/{paymentId:int}/confirm
-        group.MapPut("/operations/subscriptions/payments/{paymentId:int}/confirm", async (int paymentId, ConfirmSubscriptionPayment feature) =>
+        // PUT /api/operations/subscriptions/payments/{paymentId}/confirm
+        group.MapPut("/operations/subscriptions/payments/{paymentId}/confirm", async (string paymentId, ConfirmSubscriptionPayment feature) =>
         {
             var result = await feature.ExecuteAsync(paymentId);
             return result.ToHttpResult();
         })
         .RequireAuthorization("subscriptions:update");
 
-        // PUT /api/operations/subscriptions/payments/{paymentId:int}/reject
-        group.MapPut("/operations/subscriptions/payments/{paymentId:int}/reject", async (int paymentId, RejectSubscriptionPaymentRequest request, RejectSubscriptionPayment feature) =>
+        // PUT /api/operations/subscriptions/payments/{paymentId}/reject
+        group.MapPut("/operations/subscriptions/payments/{paymentId}/reject", async (string paymentId, RejectSubscriptionPaymentRequest request, RejectSubscriptionPayment feature) =>
         {
             var result = await feature.ExecuteAsync(paymentId, request);
             return result.ToHttpResult();

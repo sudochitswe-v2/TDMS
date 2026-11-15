@@ -48,10 +48,10 @@ public class TutorSearchTests : IClassFixture<WebApplicationFactory<Program>>
         // Arrange
         var client = _factory.CreateClient();
 
-        // Login as student1@tdms.local (pre-configured with Mathematics & Physics requirements)
+        // Login as aung.kaung@tdms.local (pre-configured with Mathematics & Physics requirements)
         var loginResponse = await client.PostAsJsonAsync("/api/auth/login", new
         {
-            email = "student1@tdms.local",
+            email = "aung.kaung@tdms.local",
             password = "Password123!"
         });
         loginResponse.IsSuccessStatusCode.Should().BeTrue();
@@ -88,9 +88,11 @@ public class TutorSearchTests : IClassFixture<WebApplicationFactory<Program>>
     {
         // Arrange
         var client = _factory.CreateClient();
+        var categories = await client.GetFromJsonAsync<List<TDMS.Api.Features.Operations.CategorySummaryDto>>("/api/categories");
+        var mathCategory = categories!.First(c => c.Name == "Mathematics");
 
-        // Act - Search specifically for categoryId = 1 (Mathematics)
-        var response = await client.GetAsync("/api/tutors/search?categoryId=1");
+        // Act - Search specifically for Mathematics category
+        var response = await client.GetAsync($"/api/tutors/search?categoryId={mathCategory.Id}");
 
         // Assert
         response.IsSuccessStatusCode.Should().BeTrue();

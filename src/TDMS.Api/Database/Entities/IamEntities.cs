@@ -44,7 +44,7 @@ public class UserRole
 
 public class RoleClaim
 {
-    public int Id { get; set; }
+    public string Id { get; set; } = Guid.NewGuid().ToString();
     public string RoleId { get; set; } = string.Empty;
     public Role Role { get; set; } = null!;
 

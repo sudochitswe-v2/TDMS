@@ -13,7 +13,7 @@ public record UpdateLearnerProfileRequest(
     decimal PreferredMaxHourlyFee,
     string PreferredTeachingMode,
     string? LearningGoalsNote,
-    List<int> CategoryIds,
+    List<string> CategoryIds,
     List<ScheduleSlotDto> ScheduleSlots
 );
 
@@ -25,7 +25,7 @@ public record LearnerProfileResponse(
     decimal PreferredMaxHourlyFee,
     string PreferredTeachingMode,
     string? LearningGoalsNote,
-    List<int> CategoryIds,
+    List<string> CategoryIds,
     List<ScheduleSlotDto> ScheduleSlots
 );
 

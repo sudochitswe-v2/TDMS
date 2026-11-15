@@ -5,8 +5,8 @@ using TDMS.Api.Database;
 namespace TDMS.Api.Features.Operations;
 
 public record TutorPaymentRecordDto(
-    int Id,
-    int SubscriptionPackageId,
+    string Id,
+    string SubscriptionPackageId,
     string PackageName,
     decimal Amount,
     string PaymentMethod,

@@ -2,7 +2,7 @@ namespace TDMS.Api.Database.Entities;
 
 public class Category : IAuditableEntity
 {
-    public int Id { get; set; }
+    public string Id { get; set; } = Guid.NewGuid().ToString();
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public bool IsActive { get; set; } = true;
@@ -15,7 +15,7 @@ public class Category : IAuditableEntity
 
 public class SubscriptionPackage : IAuditableEntity
 {
-    public int Id { get; set; }
+    public string Id { get; set; } = Guid.NewGuid().ToString();
     public string TierName { get; set; } = string.Empty;
     public int DurationDays { get; set; }
     public decimal DisplayFee { get; set; }
@@ -32,11 +32,11 @@ public class SubscriptionPackage : IAuditableEntity
 
 public class SubscriptionPayment : IAuditableEntity
 {
-    public int Id { get; set; }
+    public string Id { get; set; } = Guid.NewGuid().ToString();
     public string TutorProfileId { get; set; } = string.Empty;
     public TutorProfile TutorProfile { get; set; } = null!;
 
-    public int SubscriptionPackageId { get; set; }
+    public string SubscriptionPackageId { get; set; } = string.Empty;
     public SubscriptionPackage SubscriptionPackage { get; set; } = null!;
 
     public decimal Amount { get; set; }

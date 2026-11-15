@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 
 interface DemandSupplyItem {
-  categoryId: number
+  categoryId: string | number
   categoryName: string
   searchDemandCount: number
   tutorSupplyCount: number

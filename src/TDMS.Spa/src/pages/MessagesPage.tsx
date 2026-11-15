@@ -22,7 +22,7 @@ interface InquiryItem {
   tutorProfileId: string
   tutorUserId: string
   tutorName: string
-  categoryId: number
+  categoryId: string | number
   categoryName: string
   initialRequirementSummary: string
   status: 'Pending' | 'Accepted' | 'Declined'

@@ -18,7 +18,7 @@ import {
 } from 'lucide-react'
 
 interface SubscriptionPackage {
-  id: number
+  id: string | number
   tierName: string
   durationDays: number
   displayFee: number
@@ -52,7 +52,7 @@ export const SubscriptionsManagementPage: React.FC = () => {
   })
 
   const saveMutation = useMutation({
-    mutationFn: (payload: { id?: number; body: any }) => {
+    mutationFn: (payload: { id?: string | number; body: any }) => {
       if (payload.id) {
         return api.put(`/api/subscriptions/${payload.id}`, payload.body)
       }

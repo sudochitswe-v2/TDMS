@@ -36,7 +36,7 @@ interface SubscriptionReportSummary {
 }
 
 interface SubscriptionTierDistribution {
-  packageId: number
+  packageId: string | number
   tierName: string
   displayFee: number
   durationDays: number
@@ -53,7 +53,7 @@ interface TutorSubscriptionItem {
   tutorName: string
   tutorEmail: string
   verificationStatus: string
-  packageId?: number | null
+  packageId?: string | number | null
   tierName: string
   displayFee: number
   durationDays: number

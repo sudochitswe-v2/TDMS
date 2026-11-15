@@ -29,7 +29,7 @@ public record UpdateTeachingInfoRequest(
     decimal HourlyFee,
     string TeachingMode,
     int YearsOfExperience,
-    List<int> CategoryIds,
+    List<string> CategoryIds,
     List<ScheduleSlotDto> ScheduleSlots
 );
 
@@ -51,7 +51,7 @@ public static class TutorEndpoints
 
         // GET /api/tutors/search
         group.MapGet("/search", async (
-            int? categoryId,
+            string? categoryId,
             decimal? minFee,
             decimal? maxFee,
             string? teachingMode,
@@ -112,8 +112,8 @@ public static class TutorEndpoints
         })
         .RequireAuthorization("tutors:update");
 
-        // DELETE /api/tutors/me/documents/{documentId:int}
-        group.MapDelete("/me/documents/{documentId:int}", async (int documentId, DeleteTutorDocument feature) =>
+        // DELETE /api/tutors/me/documents/{documentId}
+        group.MapDelete("/me/documents/{documentId}", async (string documentId, DeleteTutorDocument feature) =>
         {
             var result = await feature.ExecuteAsync(documentId);
             return result.ToHttpResult();

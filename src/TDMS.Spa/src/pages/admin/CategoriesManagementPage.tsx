@@ -15,7 +15,7 @@ import {
 } from 'lucide-react'
 
 interface CategoryItem {
-  id: number
+  id: string | number
   name: string
   description: string | null
   isActive: boolean
@@ -54,7 +54,7 @@ export const CategoriesManagementPage: React.FC = () => {
   })
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: { name: string; description: string; isActive: boolean } }) =>
+    mutationFn: ({ id, data }: { id: string | number; data: { name: string; description: string; isActive: boolean } }) =>
       api.put(`/api/categories/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] })
@@ -68,7 +68,7 @@ export const CategoriesManagementPage: React.FC = () => {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => api.delete(`/api/categories/${id}`),
+    mutationFn: (id: string | number) => api.delete(`/api/categories/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] })
       setSuccessMsg('Category deleted successfully.')

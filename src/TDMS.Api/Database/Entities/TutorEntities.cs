@@ -17,10 +17,9 @@ public class TutorProfile : IAuditableEntity
     public string VerificationStatus { get; set; } = "Pending"; // "Pending", "Verified", "Rejected"
     public string? RejectionReason { get; set; }
     public string? VerifiedByUserId { get; set; }
-    public User? VerifiedByUser { get; set; }
     public DateTime? VerifiedAt { get; set; }
 
-    public int? CurrentSubscriptionPackageId { get; set; }
+    public string? CurrentSubscriptionPackageId { get; set; }
     public SubscriptionPackage? CurrentSubscriptionPackage { get; set; }
     public DateTime? SubscriptionUpdatedAt { get; set; }
 
@@ -41,7 +40,7 @@ public class TutorProfile : IAuditableEntity
 
 public class TutorDocument
 {
-    public int Id { get; set; }
+    public string Id { get; set; } = Guid.NewGuid().ToString();
     public string TutorProfileId { get; set; } = string.Empty;
     public TutorProfile TutorProfile { get; set; } = null!;
 
@@ -54,11 +53,11 @@ public class TutorDocument
 
 public class TutorCategory
 {
-    public int Id { get; set; }
+    public string Id { get; set; } = Guid.NewGuid().ToString();
     public string TutorProfileId { get; set; } = string.Empty;
     public TutorProfile TutorProfile { get; set; } = null!;
 
-    public int CategoryId { get; set; }
+    public string CategoryId { get; set; } = string.Empty;
     public Category Category { get; set; } = null!;
 
     public string? GradeLevelTarget { get; set; }
@@ -66,7 +65,7 @@ public class TutorCategory
 
 public class TutorScheduleSlot
 {
-    public int Id { get; set; }
+    public string Id { get; set; } = Guid.NewGuid().ToString();
     public string TutorProfileId { get; set; } = string.Empty;
     public TutorProfile TutorProfile { get; set; } = null!;
 

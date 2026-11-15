@@ -35,16 +35,114 @@ public class DatabaseSeedService
         }
     }
 
-    public async Task SeedAsync(bool force = false)
+    public async Task<bool> IsSchemaOutdatedAsync()
     {
-        // Only migrate and seed if database is completely empty or explicitly forced
-        if (!force && await HasExistingDataAsync())
+        try
         {
-            _logger?.LogInformation("Database already contains data. Skipping schema migration and seeding.");
+            if (!await _context.Database.CanConnectAsync())
+            {
+                return false;
+            }
+
+            // Probe if Categories.Id can be read as string
+            _ = await _context.Categories.Select(c => c.Id).FirstOrDefaultAsync();
+
+            // Probe if old numbered accounts are present
+            bool hasOldNumberedAccounts = await _context.Users.AnyAsync(u => u.Email == "student1@tdms.local" || u.Email == "tutor1@tdms.local");
+            if (hasOldNumberedAccounts)
+            {
+                return true;
+            }
+
+            // Check if named accounts exist
+            bool hasNamedStudent = await _context.Users.AnyAsync(u => u.Email == "aung.kaung@tdms.local");
+            if (!hasNamedStudent)
+            {
+                return true;
+            }
+
+            return false;
+        }
+        catch
+        {
+            return true;
+        }
+    }
+
+    public async Task ResetDatabaseAsync()
+    {
+        if (!_context.Database.IsRelational())
+        {
+            await _context.Database.EnsureDeletedAsync();
             return;
         }
 
-        _logger?.LogInformation("No existing data found in database. Initializing schema and seeding default records...");
+        try
+        {
+            var tables = new[]
+            {
+                "SubscriptionPayments",
+                "SearchAuditLogs",
+                "Reviews",
+                "Inquiries",
+                "TutorScheduleSlots",
+                "TutorCategories",
+                "TutorDocuments",
+                "TutorProfiles",
+                "LearnerScheduleSlots",
+                "LearnerRequirementCategories",
+                "LearnerProfiles",
+                "SubscriptionPackages",
+                "Categories",
+                "SystemSettings",
+                "UserRoles",
+                "RoleClaims",
+                "Roles",
+                "Users",
+                "__EFMigrationsHistory"
+            };
+
+            await _context.Database.ExecuteSqlRawAsync("SET FOREIGN_KEY_CHECKS = 0;");
+#pragma warning disable EF1002
+            foreach (var table in tables)
+            {
+                try
+                {
+                    await _context.Database.ExecuteSqlRawAsync($"DROP TABLE IF EXISTS `{table}`;");
+                }
+                catch { }
+            }
+#pragma warning restore EF1002
+            await _context.Database.ExecuteSqlRawAsync("SET FOREIGN_KEY_CHECKS = 1;");
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to drop relational tables: {Message}", ex.Message);
+        }
+    }
+
+    public async Task SeedAsync(bool force = false)
+    {
+        bool isOutdated = false;
+        if (_context.Database.IsRelational())
+        {
+            isOutdated = await IsSchemaOutdatedAsync();
+        }
+
+        // Only skip if not forced, not outdated, and database already contains data
+        if (!force && !isOutdated && await HasExistingDataAsync())
+        {
+            _logger?.LogInformation("Database already contains up-to-date data. Skipping schema migration and seeding.");
+            return;
+        }
+
+        if (isOutdated || force)
+        {
+            _logger?.LogInformation("Outdated schema or records detected. Resetting database tables...");
+            await ResetDatabaseAsync();
+        }
+
+        _logger?.LogInformation("Initializing schema and seeding default records...");
         await _context.Database.EnsureCreatedAsync();
 
         if (_context.Database.IsRelational())
@@ -56,9 +154,9 @@ public class DatabaseSeedService
                 "ALTER TABLE TutorDocuments ADD COLUMN IF NOT EXISTS FileName VARCHAR(255)",
                 "ALTER TABLE TutorDocuments ADD COLUMN IF NOT EXISTS FileSizeBytes BIGINT DEFAULT 0",
                 @"CREATE TABLE IF NOT EXISTS `SubscriptionPayments` (
-                    `Id` INT AUTO_INCREMENT PRIMARY KEY,
+                    `Id` VARCHAR(36) NOT NULL PRIMARY KEY,
                     `TutorProfileId` VARCHAR(36) NOT NULL,
-                    `SubscriptionPackageId` INT NOT NULL,
+                    `SubscriptionPackageId` VARCHAR(36) NOT NULL,
                     `Amount` DECIMAL(18,2) NOT NULL,
                     `PaymentMethod` VARCHAR(50) NOT NULL,
                     `TransactionLast6` VARCHAR(20) NOT NULL,
@@ -452,7 +550,7 @@ public class DatabaseSeedService
         {
             new
             {
-                Email = "tutor.math@tdms.local",
+                Email = "kyaw.swar@tdms.local",
                 Name = "Dr. Kyaw Swar",
                 Headline = "High School & University Mathematics Specialist",
                 Bio = "Over 8 years of experience mentoring high school and university students in Advanced Calculus, Algebra, and Geometry.",
@@ -463,7 +561,7 @@ public class DatabaseSeedService
             },
             new
             {
-                Email = "tutor.physics@tdms.local",
+                Email = "thida.win@tdms.local",
                 Name = "Daw Thida Win",
                 Headline = "Experienced Physics Instructor (Mechanics & Thermodynamics)",
                 Bio = "Specializes in building deep conceptual foundations for IGCSE, Matriculation, and AP Physics candidates.",
@@ -474,7 +572,7 @@ public class DatabaseSeedService
             },
             new
             {
-                Email = "tutor.chemistry@tdms.local",
+                Email = "aung.myo@tdms.local",
                 Name = "U Aung Myo",
                 Headline = "Organic & Physical Chemistry Educator",
                 Bio = "Focusing on laboratory principles, chemical reaction mechanisms, and university entrance examination preparation.",
@@ -485,7 +583,7 @@ public class DatabaseSeedService
             },
             new
             {
-                Email = "tutor.biology@tdms.local",
+                Email = "hlahla.moe@tdms.local",
                 Name = "Dr. Hla Hla Moe",
                 Headline = "Physiology & Genetics Medical Tutor",
                 Bio = "Passionate educator simplifying complex anatomical pathways, cellular biology, and medical entrance requirements.",
@@ -496,7 +594,7 @@ public class DatabaseSeedService
             },
             new
             {
-                Email = "tutor.english@tdms.local",
+                Email = "may.zin@tdms.local",
                 Name = "Daw May Zin",
                 Headline = "Certified IELTS & Academic English Language Coach",
                 Bio = "Helping students improve reading, writing, and conversational fluency with proven interactive methodologies.",
@@ -507,7 +605,7 @@ public class DatabaseSeedService
             },
             new
             {
-                Email = "tutor.cs@tdms.local",
+                Email = "min.thein@tdms.local",
                 Name = "U Min Thein",
                 Headline = "Full-Stack Software Engineer & Algorithms Mentor",
                 Bio = "Practical coding sessions in Python, C#, TypeScript, and Data Structures for real-world software engineering.",
@@ -639,7 +737,7 @@ public class DatabaseSeedService
         {
             new
             {
-                Email = "student1@tdms.local",
+                Email = "aung.kaung@tdms.local",
                 Name = "Aung Kaung",
                 SubType = "Student",
                 Grade = "Grade 11",
@@ -650,7 +748,7 @@ public class DatabaseSeedService
             },
             new
             {
-                Email = "student2@tdms.local",
+                Email = "su.myatnoe@tdms.local",
                 Name = "Su Myat Noe",
                 SubType = "Student",
                 Grade = "Grade 10",
@@ -661,7 +759,7 @@ public class DatabaseSeedService
             },
             new
             {
-                Email = "student3@tdms.local",
+                Email = "htet.waiyan@tdms.local",
                 Name = "Htet Wai Yan",
                 SubType = "Student",
                 Grade = "Grade 12",
@@ -672,7 +770,7 @@ public class DatabaseSeedService
             },
             new
             {
-                Email = "student4@tdms.local",
+                Email = "khin.wintwah@tdms.local",
                 Name = "Khin Wint Wah",
                 SubType = "Student",
                 Grade = "Undergraduate",
@@ -683,7 +781,7 @@ public class DatabaseSeedService
             },
             new
             {
-                Email = "student5@tdms.local",
+                Email = "nilar.parent@tdms.local",
                 Name = "Daw Nilar (Parent)",
                 SubType = "Parent",
                 Grade = "Middle School",
@@ -694,7 +792,7 @@ public class DatabaseSeedService
             },
             new
             {
-                Email = "student6@tdms.local",
+                Email = "zayar.min@tdms.local",
                 Name = "Zayar Min",
                 SubType = "Student",
                 Grade = "Grade 11",
@@ -705,7 +803,7 @@ public class DatabaseSeedService
             },
             new
             {
-                Email = "student7@tdms.local",
+                Email = "thiri.shwe@tdms.local",
                 Name = "Thiri Shwe",
                 SubType = "Student",
                 Grade = "High School",
@@ -716,7 +814,7 @@ public class DatabaseSeedService
             },
             new
             {
-                Email = "student8@tdms.local",
+                Email = "tuntun.parent@tdms.local",
                 Name = "U Tun Tun (Parent)",
                 SubType = "Parent",
                 Grade = "Grade 9",
@@ -727,7 +825,7 @@ public class DatabaseSeedService
             },
             new
             {
-                Email = "student9@tdms.local",
+                Email = "myo.minko@tdms.local",
                 Name = "Myo Min Ko",
                 SubType = "Student",
                 Grade = "University",
@@ -738,7 +836,7 @@ public class DatabaseSeedService
             },
             new
             {
-                Email = "student10@tdms.local",
+                Email = "pyae.soneaung@tdms.local",
                 Name = "Pyae Sone Aung",
                 SubType = "Student",
                 Grade = "Grade 12",
@@ -845,7 +943,7 @@ public class DatabaseSeedService
         if (tutors.Count == 0) return;
 
         var students = await _context.Users
-            .Where(u => u.Email.StartsWith("student"))
+            .Where(u => u.LearnerProfile != null)
             .ToListAsync();
         if (students.Count == 0) return;
 
@@ -875,28 +973,28 @@ public class DatabaseSeedService
         {
             // Mathematics (Dr. Kyaw Swar)
             new {
-                StudentEmail = "student1@tdms.local",
+                StudentEmail = "aung.kaung@tdms.local",
                 Subject = "Mathematics",
                 Rating = 5,
                 Comment = "Dr. Kyaw Swar explained Calculus and linear algebra with remarkable clarity! My grades improved from a C to an A in just two months.",
                 DaysAgo = 14
             },
             new {
-                StudentEmail = "student3@tdms.local",
+                StudentEmail = "htet.waiyan@tdms.local",
                 Subject = "Mathematics",
                 Rating = 5,
                 Comment = "Excellent mathematics mentor. Helped me build solid foundational knowledge in discrete math and coordinate geometry for computer science.",
                 DaysAgo = 10
             },
             new {
-                StudentEmail = "student5@tdms.local",
+                StudentEmail = "nilar.parent@tdms.local",
                 Subject = "Mathematics",
                 Rating = 5,
                 Comment = "Very patient and structured with my child's middle school geometry curriculum. Always punctual and supportive.",
                 DaysAgo = 7
             },
             new {
-                StudentEmail = "student8@tdms.local",
+                StudentEmail = "tuntun.parent@tdms.local",
                 Subject = "Mathematics",
                 Rating = 4,
                 Comment = "Strong conceptual focus and well-prepared lesson plans. My son is much more confident in his weekly algebra quizzes now.",
@@ -905,21 +1003,21 @@ public class DatabaseSeedService
 
             // Physics (Daw Thida Win)
             new {
-                StudentEmail = "student1@tdms.local",
+                StudentEmail = "aung.kaung@tdms.local",
                 Subject = "Physics",
                 Rating = 5,
                 Comment = "Her mechanics demonstrations and step-by-step problem solving methods are top-notch. She really cares about student progress.",
                 DaysAgo = 12
             },
             new {
-                StudentEmail = "student6@tdms.local",
+                StudentEmail = "zayar.min@tdms.local",
                 Subject = "Physics",
                 Rating = 5,
                 Comment = "Thermodynamics and electromagnetism used to be intimidating, but Daw Thida made them intuitive and easy to understand.",
                 DaysAgo = 8
             },
             new {
-                StudentEmail = "student10@tdms.local",
+                StudentEmail = "pyae.soneaung@tdms.local",
                 Subject = "Physics",
                 Rating = 4,
                 Comment = "Great preparation for matriculation and IGCSE board exams. Thorough homework feedback and friendly demeanor.",
@@ -928,21 +1026,21 @@ public class DatabaseSeedService
 
             // Chemistry (U Aung Myo)
             new {
-                StudentEmail = "student2@tdms.local",
+                StudentEmail = "su.myatnoe@tdms.local",
                 Subject = "Chemistry",
                 Rating = 5,
                 Comment = "Helped me understand organic chemistry reaction mechanisms effortlessly. His mnemonic techniques for the periodic table are fantastic!",
                 DaysAgo = 15
             },
             new {
-                StudentEmail = "student6@tdms.local",
+                StudentEmail = "zayar.min@tdms.local",
                 Subject = "Chemistry",
                 Rating = 4,
                 Comment = "Solid physical chemistry educator with very practical problem solving drills and laboratory safety insights.",
                 DaysAgo = 9
             },
             new {
-                StudentEmail = "student10@tdms.local",
+                StudentEmail = "pyae.soneaung@tdms.local",
                 Subject = "Chemistry",
                 Rating = 5,
                 Comment = "Exam-oriented revision notes and formula sheets made preparing for university entrance exams smooth and stress-free.",
@@ -951,21 +1049,21 @@ public class DatabaseSeedService
 
             // Biology (Dr. Hla Hla Moe)
             new {
-                StudentEmail = "student2@tdms.local",
+                StudentEmail = "su.myatnoe@tdms.local",
                 Subject = "Biology",
                 Rating = 5,
                 Comment = "Passionate doctor and educator! She uses 3D diagrams and clinical cases that make human physiology unforgettable.",
                 DaysAgo = 16
             },
             new {
-                StudentEmail = "student4@tdms.local",
+                StudentEmail = "khin.wintwah@tdms.local",
                 Subject = "Biology",
                 Rating = 5,
                 Comment = "Outstanding teacher for medical entrance preparation and genetics chapters. Clear explanations and high dedication.",
                 DaysAgo = 11
             },
             new {
-                StudentEmail = "student7@tdms.local",
+                StudentEmail = "thiri.shwe@tdms.local",
                 Subject = "Biology",
                 Rating = 5,
                 Comment = "Her human anatomy breakdown is brilliant. Always available to answer complex questions patiently.",
@@ -974,21 +1072,21 @@ public class DatabaseSeedService
 
             // English Language (Daw May Zin)
             new {
-                StudentEmail = "student4@tdms.local",
+                StudentEmail = "khin.wintwah@tdms.local",
                 Subject = "English Language",
                 Rating = 5,
                 Comment = "Targeted IELTS speaking and academic writing practice helped me score 7.5! Truly an exceptional and encouraging coach.",
                 DaysAgo = 18
             },
             new {
-                StudentEmail = "student5@tdms.local",
+                StudentEmail = "nilar.parent@tdms.local",
                 Subject = "English Language",
                 Rating = 5,
                 Comment = "Kind and encouraging language instructor. My daughter's vocabulary, pronunciation, and essay structure improved remarkably.",
                 DaysAgo = 13
             },
             new {
-                StudentEmail = "student9@tdms.local",
+                StudentEmail = "myo.minko@tdms.local",
                 Subject = "English Language",
                 Rating = 5,
                 Comment = "Great interactive sessions for professional writing and fluent conversational communication. Highly recommended!",
@@ -997,21 +1095,21 @@ public class DatabaseSeedService
 
             // Computer Science (U Min Thein)
             new {
-                StudentEmail = "student3@tdms.local",
+                StudentEmail = "htet.waiyan@tdms.local",
                 Subject = "Computer Science",
                 Rating = 5,
                 Comment = "Practical coding sessions with Python and C# were extremely helpful for my university assignments and algorithms coursework.",
                 DaysAgo = 14
             },
             new {
-                StudentEmail = "student9@tdms.local",
+                StudentEmail = "myo.minko@tdms.local",
                 Subject = "Computer Science",
                 Rating = 5,
                 Comment = "High-level guidance on data structures, system design, and Git workflow. An industry professional who knows how to teach.",
                 DaysAgo = 7
             },
             new {
-                StudentEmail = "student6@tdms.local",
+                StudentEmail = "zayar.min@tdms.local",
                 Subject = "Computer Science",
                 Rating = 5,
                 Comment = "Clear code reviews and patience when debugging tricky edge cases. Learned modern full-stack development in just a few sessions.",
@@ -1076,19 +1174,19 @@ public class DatabaseSeedService
 
         var physicsTutor = await _context.TutorProfiles
             .Include(t => t.User)
-            .FirstOrDefaultAsync(t => t.User.Email == "tutor.physics@tdms.local");
+            .FirstOrDefaultAsync(t => t.User.Email == "thida.win@tdms.local");
 
         var chemistryTutor = await _context.TutorProfiles
             .Include(t => t.User)
-            .FirstOrDefaultAsync(t => t.User.Email == "tutor.chemistry@tdms.local");
+            .FirstOrDefaultAsync(t => t.User.Email == "aung.myo@tdms.local");
 
         var mathTutor = await _context.TutorProfiles
             .Include(t => t.User)
-            .FirstOrDefaultAsync(t => t.User.Email == "tutor.math@tdms.local");
+            .FirstOrDefaultAsync(t => t.User.Email == "kyaw.swar@tdms.local");
 
         var biologyTutor = await _context.TutorProfiles
             .Include(t => t.User)
-            .FirstOrDefaultAsync(t => t.User.Email == "tutor.biology@tdms.local");
+            .FirstOrDefaultAsync(t => t.User.Email == "hlahla.moe@tdms.local");
 
         var masterPackage = await _context.SubscriptionPackages
             .FirstOrDefaultAsync(p => p.TierName == "Master Tutor");

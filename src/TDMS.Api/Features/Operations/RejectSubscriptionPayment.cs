@@ -21,7 +21,7 @@ public class RejectSubscriptionPayment
         _currentUser = currentUser;
     }
 
-    public async Task<ServiceResult<RejectPaymentResponse>> ExecuteAsync(int paymentId, RejectSubscriptionPaymentRequest request)
+    public async Task<ServiceResult<RejectPaymentResponse>> ExecuteAsync(string paymentId, RejectSubscriptionPaymentRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.RejectionReason))
         {

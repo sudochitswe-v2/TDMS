@@ -20,17 +20,17 @@ public class LearnerProfile : IAuditableEntity
 
 public class LearnerRequirementCategory
 {
-    public int Id { get; set; }
+    public string Id { get; set; } = Guid.NewGuid().ToString();
     public string LearnerProfileId { get; set; } = string.Empty;
     public LearnerProfile LearnerProfile { get; set; } = null!;
 
-    public int CategoryId { get; set; }
+    public string CategoryId { get; set; } = string.Empty;
     public Category Category { get; set; } = null!;
 }
 
 public class LearnerScheduleSlot
 {
-    public int Id { get; set; }
+    public string Id { get; set; } = Guid.NewGuid().ToString();
     public string LearnerProfileId { get; set; } = string.Empty;
     public LearnerProfile LearnerProfile { get; set; } = null!;
 

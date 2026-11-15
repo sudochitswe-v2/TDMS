@@ -4,12 +4,12 @@ using TDMS.Api.Database;
 namespace TDMS.Api.Features.Operations;
 
 public record OperationPaymentItemDto(
-    int Id,
+    string Id,
     string TutorProfileId,
     string TutorName,
     string TutorEmail,
     string CurrentTier,
-    int PackageId,
+    string PackageId,
     string PackageName,
     decimal PackageFee,
     int DurationDays,

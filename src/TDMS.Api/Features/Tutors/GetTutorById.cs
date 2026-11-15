@@ -5,10 +5,10 @@ using TDMS.Api.Features.Account;
 
 namespace TDMS.Api.Features.Tutors;
 
-public record TutorCategoryItemDto(int CategoryId, string Name, string? GradeLevelTarget);
+public record TutorCategoryItemDto(string CategoryId, string Name, string? GradeLevelTarget);
 
 public record TutorDocumentItemDto(
-    int Id,
+    string Id,
     string DocumentType,
     string? FileName,
     string FileUrl,

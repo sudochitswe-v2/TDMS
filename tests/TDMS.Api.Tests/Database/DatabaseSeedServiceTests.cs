@@ -136,10 +136,10 @@ public class DatabaseSeedServiceTests
         learnerProfiles.Should().OnlyContain(l => l.ScheduleSlots.Count >= 3);
 
         // Password Consistency: all accounts must share DatabaseSeedService.DefaultPassword ("Password123!")
-        var mathTutorUser = await context.Users.FirstAsync(u => u.Email == "tutor.math@tdms.local");
+        var mathTutorUser = await context.Users.FirstAsync(u => u.Email == "kyaw.swar@tdms.local");
         BCrypt.Net.BCrypt.Verify(DatabaseSeedService.DefaultPassword, mathTutorUser.PasswordHash).Should().BeTrue();
 
-        var student1User = await context.Users.FirstAsync(u => u.Email == "student1@tdms.local");
+        var student1User = await context.Users.FirstAsync(u => u.Email == "aung.kaung@tdms.local");
         BCrypt.Net.BCrypt.Verify(DatabaseSeedService.DefaultPassword, student1User.PasswordHash).Should().BeTrue();
 
         var adminUserCheck = await context.Users.FirstAsync(u => u.Email == "admin@tdms.local");

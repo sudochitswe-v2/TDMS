@@ -34,12 +34,12 @@ interface LearnerProfile {
   preferredMaxHourlyFee: number
   preferredTeachingMode: string
   learningGoalsNote?: string
-  categoryIds: number[]
+  categoryIds: (string | number)[]
   scheduleSlots: ScheduleSlot[]
 }
 
 interface CategoryItem {
-  id: number
+  id: string | number
   name: string
 }
 
@@ -55,7 +55,7 @@ export const LearnerAccountPage: React.FC = () => {
   const [preferredMaxHourlyFee, setPreferredMaxHourlyFee] = useState(35000)
   const [preferredTeachingMode, setPreferredTeachingMode] = useState('Both')
   const [learningGoalsNote, setLearningGoalsNote] = useState('')
-  const [categoryIds, setCategoryIds] = useState<number[]>([])
+  const [categoryIds, setCategoryIds] = useState<(string | number)[]>([])
   const [scheduleSlots, setScheduleSlots] = useState<ScheduleSlot[]>([])
   const [successMessage, setSuccessMessage] = useState('')
 
@@ -104,7 +104,7 @@ export const LearnerAccountPage: React.FC = () => {
     })
   }
 
-  const toggleCategory = (id: number) => {
+  const toggleCategory = (id: string | number) => {
     setCategoryIds((prev) =>
       prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
     )

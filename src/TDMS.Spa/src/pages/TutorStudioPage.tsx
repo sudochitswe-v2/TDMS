@@ -40,8 +40,8 @@ interface ScheduleSlot {
 }
 
 interface SubscriptionPaymentItem {
-  id: number
-  subscriptionPackageId: number
+  id: string | number
+  subscriptionPackageId: string | number
   packageName: string
   amount: number
   paymentMethod: string
@@ -82,17 +82,17 @@ interface TutorMeResponse {
   totalReviewsCount: number
   isPublished: boolean
   layoutThemeJson?: string
-  currentSubscriptionPackageId?: number
+  currentSubscriptionPackageId?: string | number
   subscriptionPackage?: {
-    id: number
+    id: string | number
     tierName: string
     maxActiveSubjects: number
     prioritySearchBoost: number
   }
-  categories: { categoryId: number; name: string }[]
+  categories: { categoryId: string | number; name: string }[]
   scheduleSlots: ScheduleSlot[]
   documents: {
-    id: number
+    id: string | number
     documentType: string
     fileName?: string
     fileUrl: string
@@ -102,12 +102,12 @@ interface TutorMeResponse {
 }
 
 interface CategoryItem {
-  id: number
+  id: string | number
   name: string
 }
 
 interface SubscriptionPackage {
-  id: number
+  id: string | number
   tierName: string
   durationDays: number
   displayFee: number
@@ -126,7 +126,7 @@ export const TutorStudioPage: React.FC = () => {
   const [hourlyFee, setHourlyFee] = useState(25000)
   const [teachingMode, setTeachingMode] = useState('Online')
   const [yearsOfExperience, setYearsOfExperience] = useState(2)
-  const [categoryIds, setCategoryIds] = useState<number[]>([])
+  const [categoryIds, setCategoryIds] = useState<(string | number)[]>([])
   const [scheduleSlots, setScheduleSlots] = useState<ScheduleSlot[]>([])
 
   // Customization state
@@ -229,7 +229,7 @@ export const TutorStudioPage: React.FC = () => {
   })
 
   const deleteDocMutation = useMutation({
-    mutationFn: (documentId: number) => api.delete(`/api/tutors/me/documents/${documentId}`),
+    mutationFn: (documentId: string | number) => api.delete(`/api/tutors/me/documents/${documentId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tutorMe'] })
       setMessage('Document removed successfully.')
@@ -328,7 +328,7 @@ export const TutorStudioPage: React.FC = () => {
   })
 
   const selectPackage = useMutation({
-    mutationFn: (pkgId: number) => api.post(`/api/subscriptions/${pkgId}/select`),
+    mutationFn: (pkgId: string | number) => api.post(`/api/subscriptions/${pkgId}/select`),
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ['tutorMe'] })
       setMessage(data?.message || 'Subscription package updated!')
@@ -342,7 +342,7 @@ export const TutorStudioPage: React.FC = () => {
 
   const purchaseSubscriptionMutation = useMutation({
     mutationFn: (data: {
-      packageId: number
+      packageId: string | number
       paymentMethod: string
       transactionLast6: string
       screenshotBase64: string
@@ -441,7 +441,7 @@ export const TutorStudioPage: React.FC = () => {
     })
   }
 
-  const toggleCategory = (id: number) => {
+  const toggleCategory = (id: string | number) => {
     setCategoryIds((prev) =>
       prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
     )

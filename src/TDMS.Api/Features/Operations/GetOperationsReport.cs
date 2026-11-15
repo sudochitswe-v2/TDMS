@@ -15,7 +15,7 @@ public record OperationsSummaryDto(
 );
 
 public record CategoryDemandSupplyDto(
-    int CategoryId,
+    string CategoryId,
     string CategoryName,
     int SearchDemandCount,
     int TutorSupplyCount,

@@ -19,7 +19,7 @@ public class SearchTutors
     }
 
     public async Task<List<TutorCardDto>> ExecuteAsync(
-        int? categoryId,
+        string? categoryId,
         decimal? minFee,
         decimal? maxFee,
         string? teachingMode,
@@ -56,7 +56,7 @@ public class SearchTutors
         }
 
         // Check if ANY explicit search filter was provided
-        bool hasExplicitFilters = categoryId.HasValue ||
+        bool hasExplicitFilters = !string.IsNullOrWhiteSpace(categoryId) ||
                                   minFee.HasValue ||
                                   maxFee.HasValue ||
                                   (!string.IsNullOrWhiteSpace(teachingMode) && !teachingMode.Equals("Both", StringComparison.OrdinalIgnoreCase)) ||
@@ -95,9 +95,9 @@ public class SearchTutors
 
         if (hasExplicitFilters)
         {
-            if (categoryId.HasValue)
+            if (!string.IsNullOrWhiteSpace(categoryId))
             {
-                query = query.Where(t => t.Categories.Any(tc => tc.CategoryId == categoryId.Value));
+                query = query.Where(t => t.Categories.Any(tc => tc.CategoryId == categoryId));
             }
 
             if (minFee.HasValue)
@@ -128,8 +128,8 @@ public class SearchTutors
 
             if (learnerProfile != null)
             {
-                var reqCats = categoryId.HasValue
-                    ? new List<int> { categoryId.Value }
+                var reqCats = !string.IsNullOrWhiteSpace(categoryId)
+                    ? new List<string> { categoryId }
                     : learnerProfile.RequirementCategories.Select(rc => rc.CategoryId).ToList();
 
                 var slots = dayOfWeek.HasValue
@@ -251,7 +251,7 @@ public class SearchTutors
         return results;
     }
 
-    private static LearnerMatchingCriteria BuildFallbackCriteria(int? categoryId, decimal? maxFee, string? teachingMode, byte? dayOfWeek)
+    private static LearnerMatchingCriteria BuildFallbackCriteria(string? categoryId, decimal? maxFee, string? teachingMode, byte? dayOfWeek)
     {
         var slots = new List<LearnerScheduleCriteria>();
         if (dayOfWeek.HasValue)
@@ -260,7 +260,7 @@ public class SearchTutors
         }
 
         return new LearnerMatchingCriteria(
-            CategoryIds: categoryId.HasValue ? [categoryId.Value] : [],
+            CategoryIds: !string.IsNullOrWhiteSpace(categoryId) ? [categoryId] : [],
             PreferredMaxHourlyFee: maxFee ?? 0m,
             PreferredTeachingMode: teachingMode ?? "Both",
             PreferredSlots: slots

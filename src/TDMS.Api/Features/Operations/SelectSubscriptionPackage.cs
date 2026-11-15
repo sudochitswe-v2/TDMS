@@ -17,7 +17,7 @@ public class SelectSubscriptionPackage
         _currentUser = currentUser;
     }
 
-    public async Task<ServiceResult<SelectPackageResponse>> ExecuteAsync(int packageId)
+    public async Task<ServiceResult<SelectPackageResponse>> ExecuteAsync(string packageId)
     {
         if (string.IsNullOrEmpty(_currentUser.UserId)) return ServiceResult<SelectPackageResponse>.Unauthorized();
 

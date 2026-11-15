@@ -81,7 +81,7 @@ public record MatchingWeights
 public record LearnerScheduleCriteria(byte DayOfWeek, TimeSpan StartTime, TimeSpan EndTime);
 
 public record LearnerMatchingCriteria(
-    IReadOnlyList<int> CategoryIds,
+    IReadOnlyList<string> CategoryIds,
     decimal PreferredMaxHourlyFee,
     string PreferredTeachingMode,
     IReadOnlyList<LearnerScheduleCriteria> PreferredSlots
@@ -91,7 +91,7 @@ public record TutorCandidateInfo(
     string TutorProfileId,
     decimal HourlyFee,
     string TeachingMode,
-    IReadOnlyList<int> CategoryIds,
+    IReadOnlyList<string> CategoryIds,
     IReadOnlyList<LearnerScheduleCriteria> AvailableSlots
 );
 

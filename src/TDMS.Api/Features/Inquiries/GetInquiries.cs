@@ -11,7 +11,7 @@ public record InquirySummaryDto(
     string TutorProfileId,
     string TutorUserId,
     string TutorName,
-    int CategoryId,
+    string CategoryId,
     string CategoryName,
     string InitialRequirementSummary,
     string Status,

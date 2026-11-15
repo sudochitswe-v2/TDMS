@@ -14,7 +14,7 @@ public class UpdateSubscriptionPackage
         _context = context;
     }
 
-    public async Task<ServiceResult<SubscriptionPackage>> ExecuteAsync(int id, SaveSubscriptionPackageRequest request)
+    public async Task<ServiceResult<SubscriptionPackage>> ExecuteAsync(string id, SaveSubscriptionPackageRequest request)
     {
         var package = await _context.SubscriptionPackages.FindAsync(id);
         if (package == null) return ServiceResult<SubscriptionPackage>.NotFound("Subscription package not found");

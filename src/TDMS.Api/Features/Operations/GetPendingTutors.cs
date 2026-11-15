@@ -4,7 +4,7 @@ using TDMS.Api.Database;
 namespace TDMS.Api.Features.Operations;
 
 public record PendingTutorDocumentDto(
-    int Id,
+    string Id,
     string DocumentType,
     string? FileName,
     string FileUrl,

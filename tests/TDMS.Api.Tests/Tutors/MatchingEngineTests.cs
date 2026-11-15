@@ -11,7 +11,7 @@ public class MatchingEngineTests
     {
         // Arrange
         var learner = new LearnerMatchingCriteria(
-            CategoryIds: [1, 2],
+            CategoryIds: ["1", "2"],
             PreferredMaxHourlyFee: 50.0m,
             PreferredTeachingMode: "Online",
             PreferredSlots:
@@ -24,7 +24,7 @@ public class MatchingEngineTests
             TutorProfileId: "tutor-1",
             HourlyFee: 40.0m, // under budget -> S_fee = 1.0
             TeachingMode: "Online", // match -> S_mode = 1.0
-            CategoryIds: [1, 2, 3], // teaches both -> S_subject = 1.0
+            CategoryIds: ["1", "2", "3"], // teaches both -> S_subject = 1.0
             AvailableSlots:
             [
                 new LearnerScheduleCriteria(1, new TimeSpan(9, 0, 0), new TimeSpan(12, 0, 0)) // overlaps -> S_schedule = 1.0
@@ -76,9 +76,9 @@ public class MatchingEngineTests
     [Fact]
     public void CalculateMatch_PartialScheduleAndSubjectOverlap_ShouldCalculateWeightedScores()
     {
-        // Arrange: Learner wants 2 categories ([1, 2]) and 2 time slots
+        // Arrange: Learner wants 2 categories (["1", "2"]) and 2 time slots
         var learner = new LearnerMatchingCriteria(
-            CategoryIds: [1, 2],
+            CategoryIds: ["1", "2"],
             PreferredMaxHourlyFee: 50.0m,
             PreferredTeachingMode: "Online",
             PreferredSlots:
@@ -96,7 +96,7 @@ public class MatchingEngineTests
             TutorProfileId: "tutor-2",
             HourlyFee: 50.0m,
             TeachingMode: "Online",
-            CategoryIds: [1],
+            CategoryIds: ["1"],
             AvailableSlots:
             [
                 new LearnerScheduleCriteria(1, new TimeSpan(15, 0, 0), new TimeSpan(17, 0, 0))
@@ -123,7 +123,7 @@ public class MatchingEngineTests
         customWeights.IsValid().Should().BeTrue();
 
         var learner = new LearnerMatchingCriteria(
-            CategoryIds: [1],
+            CategoryIds: ["1"],
             PreferredMaxHourlyFee: 50.0m,
             PreferredTeachingMode: "InPerson",
             PreferredSlots: []
@@ -133,7 +133,7 @@ public class MatchingEngineTests
             TutorProfileId: "tutor-3",
             HourlyFee: 50.0m, // FeeScore = 1.0
             TeachingMode: "Online", // Mode mismatch -> ModeScore = 0.0
-            CategoryIds: [1], // SubjectScore = 1.0
+            CategoryIds: ["1"], // SubjectScore = 1.0
             AvailableSlots: [] // ScheduleScore = 1.0
         );
 

@@ -14,7 +14,7 @@ public class UpdateCategory
         _context = context;
     }
 
-    public async Task<ServiceResult<Category>> ExecuteAsync(int id, UpdateCategoryRequest request)
+    public async Task<ServiceResult<Category>> ExecuteAsync(string id, UpdateCategoryRequest request)
     {
         var category = await _context.Categories.FindAsync(id);
         if (category == null) return ServiceResult<Category>.NotFound("Category not found");

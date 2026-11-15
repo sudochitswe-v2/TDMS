@@ -13,7 +13,7 @@ public class DeleteCategory
         _context = context;
     }
 
-    public async Task<ServiceResult<MessageResponse>> ExecuteAsync(int id)
+    public async Task<ServiceResult<MessageResponse>> ExecuteAsync(string id)
     {
         var category = await _context.Categories.FindAsync(id);
         if (category == null) return ServiceResult<MessageResponse>.NotFound("Category not found");

@@ -16,7 +16,7 @@ public record SubscriptionReportSummaryDto(
 );
 
 public record SubscriptionTierDistributionDto(
-    int PackageId,
+    string PackageId,
     string TierName,
     decimal DisplayFee,
     int DurationDays,
@@ -33,7 +33,7 @@ public record TutorSubscriptionItemDto(
     string TutorName,
     string TutorEmail,
     string VerificationStatus,
-    int? PackageId,
+    string? PackageId,
     string TierName,
     decimal DisplayFee,
     int DurationDays,

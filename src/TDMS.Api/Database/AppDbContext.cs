@@ -72,6 +72,8 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<RoleClaim>(entity =>
         {
             entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasMaxLength(36);
+            entity.Property(e => e.RoleId).HasMaxLength(36).IsRequired();
             entity.Property(e => e.ClaimType).HasMaxLength(150).IsRequired();
             entity.Property(e => e.ClaimValue).HasMaxLength(50).IsRequired();
             entity.HasIndex(e => new { e.RoleId, e.ClaimType }).IsUnique();
@@ -104,6 +106,10 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<LearnerRequirementCategory>(entity =>
         {
             entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasMaxLength(36);
+            entity.Property(e => e.LearnerProfileId).HasMaxLength(36).IsRequired();
+            entity.Property(e => e.CategoryId).HasMaxLength(36).IsRequired();
+
             entity.HasOne(e => e.LearnerProfile)
                 .WithMany(p => p.RequirementCategories)
                 .HasForeignKey(e => e.LearnerProfileId)
@@ -119,6 +125,9 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<LearnerScheduleSlot>(entity =>
         {
             entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasMaxLength(36);
+            entity.Property(e => e.LearnerProfileId).HasMaxLength(36).IsRequired();
+
             entity.HasOne(e => e.LearnerProfile)
                 .WithMany(p => p.ScheduleSlots)
                 .HasForeignKey(e => e.LearnerProfileId)
@@ -129,6 +138,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Category>(entity =>
         {
             entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasMaxLength(36);
             entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.HasIndex(e => e.Name).IsUnique();
@@ -138,6 +148,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<SubscriptionPackage>(entity =>
         {
             entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasMaxLength(36);
             entity.Property(e => e.TierName).HasMaxLength(80).IsRequired();
             entity.Property(e => e.DisplayFee).HasPrecision(10, 2);
             entity.HasIndex(e => e.TierName).IsUnique();
@@ -156,17 +167,14 @@ public class AppDbContext : DbContext
             entity.Property(e => e.VerificationStatus).HasMaxLength(20).IsRequired();
             entity.Property(e => e.RejectionReason).HasMaxLength(500);
             entity.Property(e => e.ProfilePictureUrl).HasColumnType("longtext");
+            entity.Property(e => e.VerifiedByUserId).HasMaxLength(36);
+            entity.Property(e => e.CurrentSubscriptionPackageId).HasMaxLength(36);
             entity.HasIndex(e => e.UserId).IsUnique();
 
             entity.HasOne(e => e.User)
                 .WithOne(u => u.TutorProfile)
                 .HasForeignKey<TutorProfile>(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
-
-            entity.HasOne(e => e.VerifiedByUser)
-                .WithMany()
-                .HasForeignKey(e => e.VerifiedByUserId)
-                .OnDelete(DeleteBehavior.SetNull);
 
             entity.HasOne(e => e.CurrentSubscriptionPackage)
                 .WithMany(s => s.SubscribedTutors)
@@ -178,6 +186,8 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<TutorDocument>(entity =>
         {
             entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasMaxLength(36);
+            entity.Property(e => e.TutorProfileId).HasMaxLength(36).IsRequired();
             entity.Property(e => e.DocumentType).HasMaxLength(80).IsRequired();
             entity.Property(e => e.FileName).HasMaxLength(255);
             entity.Property(e => e.FileUrl).HasColumnType("longtext").IsRequired();
@@ -192,6 +202,9 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<TutorCategory>(entity =>
         {
             entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasMaxLength(36);
+            entity.Property(e => e.TutorProfileId).HasMaxLength(36).IsRequired();
+            entity.Property(e => e.CategoryId).HasMaxLength(36).IsRequired();
             entity.Property(e => e.GradeLevelTarget).HasMaxLength(50);
 
             entity.HasOne(e => e.TutorProfile)
@@ -209,6 +222,9 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<TutorScheduleSlot>(entity =>
         {
             entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasMaxLength(36);
+            entity.Property(e => e.TutorProfileId).HasMaxLength(36).IsRequired();
+
             entity.HasOne(e => e.TutorProfile)
                 .WithMany(p => p.ScheduleSlots)
                 .HasForeignKey(e => e.TutorProfileId)
@@ -220,6 +236,9 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).HasMaxLength(36);
+            entity.Property(e => e.LearnerUserId).HasMaxLength(36).IsRequired();
+            entity.Property(e => e.TutorProfileId).HasMaxLength(36).IsRequired();
+            entity.Property(e => e.CategoryId).HasMaxLength(36).IsRequired();
             entity.Property(e => e.Status).HasMaxLength(20).IsRequired();
             entity.Property(e => e.FirebaseThreadId).HasMaxLength(128).IsRequired();
             entity.HasIndex(e => e.FirebaseThreadId).IsUnique();
@@ -245,6 +264,8 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).HasMaxLength(36);
+            entity.Property(e => e.LearnerUserId).HasMaxLength(36).IsRequired();
+            entity.Property(e => e.TutorProfileId).HasMaxLength(36).IsRequired();
             entity.HasIndex(e => new { e.LearnerUserId, e.TutorProfileId }).IsUnique();
 
             entity.HasOne(e => e.LearnerUser)
@@ -262,6 +283,10 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<SearchAuditLog>(entity =>
         {
             entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasMaxLength(36);
+            entity.Property(e => e.CategoryId).HasMaxLength(36);
+            entity.Property(e => e.LearnerUserId).HasMaxLength(36);
+
             entity.HasOne(e => e.Category)
                 .WithMany()
                 .HasForeignKey(e => e.CategoryId)
@@ -284,7 +309,9 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<SubscriptionPayment>(entity =>
         {
             entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasMaxLength(36);
             entity.Property(e => e.TutorProfileId).HasMaxLength(36).IsRequired();
+            entity.Property(e => e.SubscriptionPackageId).HasMaxLength(36).IsRequired();
             entity.Property(e => e.PaymentMethod).HasMaxLength(50).IsRequired();
             entity.Property(e => e.TransactionLast6).HasMaxLength(20).IsRequired();
             entity.Property(e => e.ScreenshotUrl).HasColumnType("longtext").IsRequired();
@@ -309,5 +336,21 @@ public class AppDbContext : DbContext
                 .HasForeignKey(e => e.ReviewedByUserId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
+
+        // Ensure every string Id and *Id foreign key is configured as varchar(36)
+        foreach (var entity in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entity.GetProperties())
+            {
+                if (property.ClrType == typeof(string) &&
+                    (property.Name == "Id" || property.Name.EndsWith("Id", StringComparison.Ordinal)))
+                {
+                    if (property.GetMaxLength() == null)
+                    {
+                        property.SetMaxLength(36);
+                    }
+                }
+            }
+        }
     }
 }

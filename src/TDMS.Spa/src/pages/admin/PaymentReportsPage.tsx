@@ -47,7 +47,7 @@ interface PaymentMethodBreakdown {
 }
 
 interface PaymentPackageBreakdown {
-  packageId: number
+  packageId: string | number
   packageName: string
   displayFee: number
   confirmedAmount: number
@@ -64,11 +64,11 @@ interface PaymentMonthlyTrend {
 }
 
 interface PaymentReportItem {
-  id: number
+  id: string | number
   tutorProfileId: string
   tutorName: string
   tutorEmail: string
-  packageId: number
+  packageId: string | number
   packageName: string
   amount: number
   paymentMethod: string

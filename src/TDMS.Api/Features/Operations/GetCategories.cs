@@ -4,7 +4,7 @@ using TDMS.Api.Database;
 namespace TDMS.Api.Features.Operations;
 
 public record CategorySummaryDto(
-    int Id,
+    string Id,
     string Name,
     string? Description,
     bool IsActive,

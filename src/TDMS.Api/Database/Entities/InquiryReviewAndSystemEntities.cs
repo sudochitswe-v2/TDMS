@@ -9,7 +9,7 @@ public class Inquiry : IAuditableEntity
     public string TutorProfileId { get; set; } = string.Empty;
     public TutorProfile TutorProfile { get; set; } = null!;
 
-    public int CategoryId { get; set; }
+    public string CategoryId { get; set; } = string.Empty;
     public Category Category { get; set; } = null!;
 
     public string InitialRequirementSummary { get; set; } = string.Empty;
@@ -39,8 +39,8 @@ public class Review : IAuditableEntity
 
 public class SearchAuditLog
 {
-    public int Id { get; set; }
-    public int? CategoryId { get; set; }
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+    public string? CategoryId { get; set; }
     public Category? Category { get; set; }
     public string? LearnerUserId { get; set; }
     public User? LearnerUser { get; set; }

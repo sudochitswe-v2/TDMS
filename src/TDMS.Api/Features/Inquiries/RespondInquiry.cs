@@ -55,15 +55,27 @@ public class RespondInquiry
         inquiry.Status = isAccept ? "Accepted" : "Declined";
         inquiry.RespondedAt = DateTime.UtcNow;
 
-        if (isAccept)
+        // Sync decision to Firebase Realtime Database
+        try
         {
-            // Initialize thread in Firebase Realtime DB
-            await _messagingService.InitializeThreadAsync(
+            if (isAccept)
+            {
+                await _messagingService.InitializeThreadAsync(
+                    inquiry.FirebaseThreadId,
+                    inquiry.LearnerUserId,
+                    inquiry.TutorProfile.UserId,
+                    inquiry.Id
+                );
+            }
+
+            await _messagingService.UpdateThreadStatusAsync(
                 inquiry.FirebaseThreadId,
-                inquiry.LearnerUserId,
-                inquiry.TutorProfile.UserId,
-                inquiry.Id
+                inquiry.Status
             );
+        }
+        catch
+        {
+            // Non-blocking fallback
         }
 
         await _context.SaveChangesAsync();

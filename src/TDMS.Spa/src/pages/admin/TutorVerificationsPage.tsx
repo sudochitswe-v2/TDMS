@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, ApiError } from '../../lib/api'
 import { formatFileSize } from '../../lib/formatters'
 import { Pagination } from '../../components/Pagination'
+import { CardSkeleton, LoadingSpinner } from '../../components/Loading'
 import {
   CheckCircle,
   XCircle,
@@ -194,8 +195,9 @@ export const TutorVerificationsPage: React.FC = () => {
       </div>
 
       {isLoading ? (
-        <div className="p-12 text-center text-muted-foreground text-sm">
-          Loading verification applications...
+        <div className="space-y-4 py-4">
+          <LoadingSpinner size="md" text="Loading tutor verification applications..." center />
+          <CardSkeleton count={3} variant="tutor" />
         </div>
       ) : filtered.length === 0 ? (
         <div className="p-12 text-center rounded-2xl border bg-card space-y-3">

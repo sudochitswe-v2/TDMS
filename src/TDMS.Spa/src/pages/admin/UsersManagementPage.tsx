@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, ApiError } from '../../lib/api'
 import { Pagination } from '../../components/Pagination'
+import { TableSkeleton } from '../../components/Loading'
 import {
   Users,
   Search,
@@ -201,11 +202,7 @@ export const UsersManagementPage: React.FC = () => {
             </thead>
             <tbody className="divide-y">
               {isLoading ? (
-                <tr>
-                  <td colSpan={5} className="py-8 text-center text-muted-foreground">
-                    Loading users...
-                  </td>
-                </tr>
+                <TableSkeleton rows={6} cols={5} message="Loading platform users..." />
               ) : filtered.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-8 text-center text-muted-foreground">

@@ -23,6 +23,12 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="firebase.service.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
   <Target Name="BuildSpa" BeforeTargets="Build" Condition="'$(BuildSpa)' != 'false'">
     <!-- Ensure Node.js is installed -->
     <Exec Command="node --version" ContinueOnError="true">

@@ -30,20 +30,23 @@ public class FirebaseRealtimeMessagingService : IFirebaseMessagingService
         // Try loading Google Service Account Credentials for Firebase Admin SDK
         var credentialFile = configuration["Firebase:CredentialFile"];
         var credentialJson = configuration["Firebase:CredentialJson"];
+        var hasLegacyAuth = !string.IsNullOrWhiteSpace(_legacyAuthToken);
 
-        if (!string.IsNullOrWhiteSpace(credentialFile) && File.Exists(credentialFile))
+        var resolvedCredentialFile = ResolveCredentialFilePath(credentialFile, hasLegacyAuth);
+
+        if (!string.IsNullOrWhiteSpace(resolvedCredentialFile))
         {
             try
             {
-                _credential = CredentialFactory.FromFile<ServiceAccountCredential>(credentialFile)
+                _credential = CredentialFactory.FromFile<ServiceAccountCredential>(resolvedCredentialFile)
                     .ToGoogleCredential()
                     .CreateScoped("https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/firebase.database");
                 InitFirebaseApp(_credential);
-                _logger.LogInformation("Firebase Admin SDK initialized from service account file: {FilePath}", credentialFile);
+                _logger.LogInformation("Firebase Admin SDK initialized from service account file: {FilePath}", resolvedCredentialFile);
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to load Firebase credentials from file: {FilePath}", credentialFile);
+                _logger.LogWarning(ex, "Failed to load Firebase credentials from file: {FilePath}", resolvedCredentialFile);
             }
         }
         else if (!string.IsNullOrWhiteSpace(credentialJson))
@@ -77,6 +80,46 @@ public class FirebaseRealtimeMessagingService : IFirebaseMessagingService
         }
     }
 
+    private static string? ResolveCredentialFilePath(string? configuredPath, bool hasLegacyAuthToken)
+    {
+        var targetFile = configuredPath;
+        if (string.IsNullOrWhiteSpace(targetFile))
+        {
+            if (hasLegacyAuthToken) return null;
+            targetFile = "firebase.service.json";
+        }
+
+        var candidatePaths = new[]
+        {
+            targetFile,
+            Path.Combine(AppContext.BaseDirectory, targetFile),
+            Path.Combine(Directory.GetCurrentDirectory(), targetFile),
+            Path.Combine(Directory.GetCurrentDirectory(), "src", "TDMS.Api", targetFile),
+            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", targetFile),
+            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "src", "TDMS.Api", targetFile),
+            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "src", "TDMS.Api", targetFile),
+            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", targetFile)
+        };
+
+        foreach (var path in candidatePaths)
+        {
+            try
+            {
+                var full = Path.GetFullPath(path);
+                if (File.Exists(full))
+                {
+                    return full;
+                }
+            }
+            catch
+            {
+                // Ignore invalid path syntax
+            }
+        }
+
+        return null;
+    }
+
     private static void InitFirebaseApp(GoogleCredential credential)
     {
         if (FirebaseApp.DefaultInstance == null)
@@ -97,11 +140,19 @@ public class FirebaseRealtimeMessagingService : IFirebaseMessagingService
 
     private async Task<string?> GetAccessTokenAsync(CancellationToken cancellationToken = default)
     {
-        if (_credential is ITokenAccess tokenAccess)
+        if (_credential != null)
         {
             try
             {
-                return await tokenAccess.GetAccessTokenForRequestAsync(cancellationToken: cancellationToken);
+                if (_credential is ITokenAccess tokenAccess)
+                {
+                    return await tokenAccess.GetAccessTokenForRequestAsync(cancellationToken: cancellationToken);
+                }
+
+                if (_credential.UnderlyingCredential is ITokenAccess underlyingTokenAccess)
+                {
+                    return await underlyingTokenAccess.GetAccessTokenForRequestAsync(cancellationToken: cancellationToken);
+                }
             }
             catch (Exception ex)
             {
@@ -137,12 +188,18 @@ public class FirebaseRealtimeMessagingService : IFirebaseMessagingService
 
     public async Task InitializeThreadAsync(string threadId, string learnerUserId, string tutorUserId, string inquiryId, CancellationToken cancellationToken = default)
     {
+        var now = DateTime.UtcNow;
         var payload = new
         {
+            threadId,
             learnerUserId,
             tutorUserId,
             inquiryId,
-            createdAt = DateTime.UtcNow.ToString("o")
+            status = "Pending",
+            date = now.ToString("yyyy-MM-dd"),
+            createdAt = now.ToString("o"),
+            timestamp = now.ToString("o"),
+            timestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
         };
 
         var content = JsonContent.Create(payload);
@@ -152,22 +209,81 @@ public class FirebaseRealtimeMessagingService : IFirebaseMessagingService
         _logger.LogInformation("Firebase thread {ThreadId} initialized successfully", threadId);
     }
 
+    public async Task UpdateThreadStatusAsync(string threadId, string status, CancellationToken cancellationToken = default)
+    {
+        var now = DateTime.UtcNow;
+        var payload = new
+        {
+            status,
+            date = now.ToString("yyyy-MM-dd"),
+            updatedDate = now.ToString("yyyy-MM-dd"),
+            respondedAt = now.ToString("o"),
+            updatedAt = now.ToString("o"),
+            timestamp = now.ToString("o"),
+            timestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+        };
+
+        var content = JsonContent.Create(payload);
+        using var request = await CreateRequestAsync(HttpMethod.Patch, $"threads/{threadId}/metadata.json", content, cancellationToken);
+        var response = await _httpClient.SendAsync(request, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        _logger.LogInformation("Firebase thread {ThreadId} status updated to {Status}", threadId, status);
+    }
+
     public async Task<MessageDto> SendMessageAsync(string threadId, string senderUserId, string senderName, string text, CancellationToken cancellationToken = default)
     {
         var messageId = Guid.NewGuid().ToString();
+        var now = DateTime.UtcNow;
         var message = new MessageDto(
             Id: messageId,
             ThreadId: threadId,
             SenderUserId: senderUserId,
             SenderName: senderName,
             Text: text,
-            Timestamp: DateTime.UtcNow
+            Timestamp: now
         );
 
-        var content = JsonContent.Create(message);
+        var payload = new
+        {
+            id = messageId,
+            threadId,
+            senderUserId,
+            senderName,
+            text,
+            date = now.ToString("yyyy-MM-dd"),
+            createdAt = now.ToString("o"),
+            timestamp = now.ToString("o"),
+            timestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+        };
+
+        var content = JsonContent.Create(payload);
         using var request = await CreateRequestAsync(HttpMethod.Put, $"threads/{threadId}/messages/{messageId}.json", content, cancellationToken);
         var response = await _httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
+
+        // Update thread metadata summary with lastMessage details and current date
+        try
+        {
+            var threadMetadataUpdate = new
+            {
+                lastMessage = text,
+                lastMessageSenderName = senderName,
+                lastMessageSenderUserId = senderUserId,
+                lastMessageDate = now.ToString("yyyy-MM-dd"),
+                lastMessageTimestamp = now.ToString("o"),
+                date = now.ToString("yyyy-MM-dd"),
+                updatedAt = now.ToString("o"),
+                timestamp = now.ToString("o"),
+                timestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+            };
+            using var patchReq = await CreateRequestAsync(HttpMethod.Patch, $"threads/{threadId}/metadata.json", JsonContent.Create(threadMetadataUpdate), cancellationToken);
+            await _httpClient.SendAsync(patchReq, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to update thread {ThreadId} metadata with latest message summary", threadId);
+        }
+
         return message;
     }
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, ApiError } from '../../lib/api'
 import { Pagination } from '../../components/Pagination'
+import { TableSkeleton } from '../../components/Loading'
 import {
   FolderTree,
   Plus,
@@ -249,11 +250,7 @@ export const CategoriesManagementPage: React.FC = () => {
             </thead>
             <tbody className="divide-y">
               {isLoading ? (
-                <tr>
-                  <td colSpan={5} className="py-8 text-center text-muted-foreground">
-                    Loading categories...
-                  </td>
-                </tr>
+                <TableSkeleton rows={5} cols={5} message="Loading curriculum subjects & categories..." />
               ) : categories.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-8 text-center text-muted-foreground">

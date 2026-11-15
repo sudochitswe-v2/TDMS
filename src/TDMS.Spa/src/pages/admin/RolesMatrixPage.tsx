@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, ApiError } from '../../lib/api'
+import { Skeleton, LoadingSpinner } from '../../components/Loading'
 import {
   KeyRound,
   ShieldCheck,
@@ -219,36 +220,56 @@ export const RolesMatrixPage: React.FC = () => {
         </div>
       )}
 
-      {/* Role Selector Tabs */}
-      <div className="flex items-center space-x-2 border-b overflow-x-auto pb-2">
-        {roles.map((role) => {
-          const isSelected = (selectedRoleId || roles[0]?.id) === role.id
-          return (
-            <button
-              key={role.id}
-              onClick={() => {
-                setSelectedRoleId(role.id)
-                setErrorMsg(null)
-                setSuccessMsg(null)
-              }}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 shrink-0 ${isSelected
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'bg-card border text-muted-foreground hover:bg-secondary hover:text-foreground'
-                }`}
-            >
-              {role.name === 'SystemAdmin' ? (
-                <ShieldCheck className="w-4 h-4 text-amber-400" />
-              ) : (
-                <KeyRound className="w-4 h-4" />
-              )}
-              <span>{role.name}</span>
-            </button>
-          )
-        })}
-      </div>
+      {isLoading ? (
+        <div className="space-y-6">
+          <div className="flex items-center space-x-2 border-b overflow-x-auto pb-2">
+            <Skeleton className="h-9 w-28 rounded-xl shrink-0" />
+            <Skeleton className="h-9 w-32 rounded-xl shrink-0" />
+            <Skeleton className="h-9 w-36 rounded-xl shrink-0" />
+            <Skeleton className="h-9 w-24 rounded-xl shrink-0" />
+          </div>
+          <LoadingSpinner size="md" text="Loading security roles and PBAC permissions matrix..." center />
+          <div className="p-6 rounded-2xl border bg-card space-y-4">
+            <Skeleton className="h-6 w-44" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
+              {Array.from({ length: 9 }).map((_, i) => (
+                <Skeleton key={i} className="h-10 w-full rounded-xl" />
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Role Selector Tabs */}
+          <div className="flex items-center space-x-2 border-b overflow-x-auto pb-2">
+            {roles.map((role) => {
+              const isSelected = (selectedRoleId || roles[0]?.id) === role.id
+              return (
+                <button
+                  key={role.id}
+                  onClick={() => {
+                    setSelectedRoleId(role.id)
+                    setErrorMsg(null)
+                    setSuccessMsg(null)
+                  }}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 shrink-0 ${isSelected
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'bg-card border text-muted-foreground hover:bg-secondary hover:text-foreground'
+                    }`}
+                >
+                  {role.name === 'SystemAdmin' ? (
+                    <ShieldCheck className="w-4 h-4 text-amber-400" />
+                  ) : (
+                    <KeyRound className="w-4 h-4" />
+                  )}
+                  <span>{role.name}</span>
+                </button>
+              )
+            })}
+          </div>
 
-      {activeRole && (
-        <div className="p-6 rounded-2xl border bg-card shadow-sm space-y-6">
+          {activeRole && (
+            <div className="p-6 rounded-2xl border bg-card shadow-sm space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b pb-4">
             <div>
               <div className="flex items-center space-x-2">
@@ -347,6 +368,8 @@ export const RolesMatrixPage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   )

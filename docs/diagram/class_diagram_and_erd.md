@@ -3,7 +3,7 @@
 This document provides the formal architectural diagrams and data specifications for the **Student-Tutor Discovery and Matching System (TDMS)**. It is structured into the following sections:
 
 1. **Initial Domain Model (Conceptual ERD — Pure Entity Relations & Many-to-Many):** Pure conceptual model containing only core business entities and direct Many-to-Many ($M:N$) associations with **zero intersection / junction / dummy entities**.
-2. **Detailed Physical ERD:** Full 3NF database schema showing physical intersection tables (`UserRoles`, `LearnerRequirementCategories`, `TutorCategories`), MariaDB column types, keys, and cascading actions.
+2. **Detailed Physical ERD:** Full 3NF database schema with exact MariaDB physical data types and declared lengths (`varchar(150)`, `varchar(100)`, `varchar(36)`, `decimal(10,2)`, `longtext`, `datetime(6)`, etc.), physical junction tables, keys, and cascading actions.
 3. **Domain Entities Class Diagram:** Object-oriented representation of domain models with properties and lifecycle/business methods.
 4. **Architecture & Services Class Diagram:** System infrastructure, security handlers, deterministic matching engine, and messaging services with function signatures.
 5. **Vertical Slice Endpoints Class Diagram:** Minimal API endpoint groups with HTTP handlers and authorization policies.
@@ -87,256 +87,429 @@ erDiagram
 
 ---
 
-## 2. Detailed Physical ERD (Tables, Attributes & Constraints)
+## 2. Detailed Physical ERD (Exact MariaDB Data Types & Declared Lengths)
 
-The physical database is **MariaDB** managed via **EF Core 10**. This model displays the complete 3NF physical schema, including junction/intersection tables (`UserRoles`, `LearnerRequirementCategories`, `TutorCategories`), column types, keys (`PK`, `FK`, `UK`), and cascading actions.
+The physical database is **MariaDB** managed via **EF Core 10**. In this physical ERD, all text and string attributes are declared with their **exact `varchar(length)`** definitions and specific relational column types (`varchar(150)`, `varchar(100)`, `varchar(36)`, `varchar(80)`, `varchar(50)`, `varchar(20)`, `varchar(500)`, `decimal(10,2)`, `longtext`, `datetime(6)`, etc.), matching the database DDL and EF Core configurations.
 
 ### 2.1 Physical ERD (Mermaid)
 
 ```mermaid
 erDiagram
+    %% ==========================================
     %% IAM & Access Control
+    %% ==========================================
     Users ||--o{ UserRoles : "assigned_to (CASCADE)"
     Roles ||--o{ UserRoles : "has_role (CASCADE)"
     Roles ||--o{ RoleClaims : "grants (CASCADE)"
 
+    %% ==========================================
     %% 1:1 Profiles
+    %% ==========================================
     Users ||--o| LearnerProfiles : "owns_learner (CASCADE)"
     Users ||--o| TutorProfiles : "owns_tutor (CASCADE)"
 
+    %% ==========================================
     %% Admin & Operational Audits
+    %% ==========================================
     Users ||--o{ TutorProfiles : "verified_by (SET NULL)"
     Users ||--o{ SubscriptionPayments : "reviewed_by (SET NULL)"
     Users ||--o{ SearchAuditLogs : "searched_by (SET NULL)"
 
+    %% ==========================================
     %% Learner Domain
+    %% ==========================================
     LearnerProfiles ||--o{ LearnerRequirementCategories : "specifies (CASCADE)"
     Categories ||--o{ LearnerRequirementCategories : "tagged_in (RESTRICT)"
     LearnerProfiles ||--o{ LearnerScheduleSlots : "availability (CASCADE)"
 
+    %% ==========================================
     %% Tutor Domain
+    %% ==========================================
     TutorProfiles ||--o{ TutorDocuments : "submits (CASCADE)"
     TutorProfiles ||--o{ TutorCategories : "teaches (CASCADE)"
     Categories ||--o{ TutorCategories : "taught_by (RESTRICT)"
     TutorProfiles ||--o{ TutorScheduleSlots : "available_at (CASCADE)"
 
+    %% ==========================================
     %% Subscription & Tier Domain
+    %% ==========================================
     SubscriptionPackages ||--o{ TutorProfiles : "enrolled_in (SET NULL)"
     SubscriptionPackages ||--o{ SubscriptionPayments : "billed_under (RESTRICT)"
     TutorProfiles ||--o{ SubscriptionPayments : "submits_payment (CASCADE)"
 
+    %% ==========================================
     %% Inquiry, Real-Time Messaging & Feedback
+    %% ==========================================
     Users ||--o{ Inquiries : "initiated_by_learner (RESTRICT)"
     TutorProfiles ||--o{ Inquiries : "targeted_tutor (CASCADE)"
-    Categories ||--o{ Inquiry : "inquiry_subject (RESTRICT)"
+    Categories ||--o{ Inquiries : "inquiry_subject (RESTRICT)"
 
     Users ||--o{ Reviews : "authored_by_learner (RESTRICT)"
     TutorProfiles ||--o{ Reviews : "reviewed_tutor (CASCADE)"
 
     Categories ||--o{ SearchAuditLogs : "searched_subject (SET NULL)"
 
+    %% ==========================================
+    %% Exact Physical Column Declarations
+    %% ==========================================
     Users {
-        string Id PK "CHAR(36) GUID"
-        string Email UK "VARCHAR(150)"
-        string UserName UK "VARCHAR(100)"
-        string FullName "VARCHAR(150)"
-        string PasswordHash "LONGTEXT"
-        string PhoneNumber "VARCHAR(50) NULL"
-        boolean IsActive "BOOLEAN (Default: true)"
-        datetime CreatedAt "DATETIME(6)"
-        datetime UpdatedAt "DATETIME(6) NULL"
+        varchar(36) Id PK
+        varchar(150) Email UK
+        varchar(100) UserName UK
+        varchar(150) FullName
+        longtext PasswordHash
+        varchar(50) PhoneNumber
+        boolean IsActive
+        datetime(6) CreatedAt
+        datetime(6) UpdatedAt
     }
 
     Roles {
-        string Id PK "CHAR(36) GUID"
-        string Name UK "VARCHAR(80)"
-        string Description "VARCHAR(255) NULL"
+        varchar(36) Id PK
+        varchar(80) Name UK
+        varchar(255) Description
     }
 
     UserRoles {
-        string UserId PK_FK "CHAR(36) -> Users.Id"
-        string RoleId PK_FK "CHAR(36) -> Roles.Id"
+        varchar(36) UserId PK_FK
+        varchar(36) RoleId PK_FK
     }
 
     RoleClaims {
-        int Id PK "INT AUTO_INCREMENT"
-        string RoleId FK "CHAR(36) -> Roles.Id"
-        string ClaimType "VARCHAR(150) (e.g. users:read)"
-        string ClaimValue "VARCHAR(50) (Default: 'true')"
+        int Id PK
+        varchar(36) RoleId FK
+        varchar(150) ClaimType
+        varchar(50) ClaimValue
     }
 
     LearnerProfiles {
-        string Id PK "CHAR(36) GUID"
-        string UserId UK_FK "CHAR(36) -> Users.Id"
-        string AccountSubType "VARCHAR(20) ('Parent' | 'Student')"
-        string GradeLevel "VARCHAR(50) NULL"
-        decimal PreferredMaxHourlyFee "DECIMAL(10,2)"
-        string PreferredTeachingMode "VARCHAR(20) ('Online'|'InPerson'|'Both')"
-        string LearningGoalsNote "TEXT NULL"
-        datetime CreatedAt "DATETIME(6)"
-        datetime UpdatedAt "DATETIME(6) NULL"
+        varchar(36) Id PK
+        varchar(36) UserId UK_FK
+        varchar(20) AccountSubType
+        varchar(50) GradeLevel
+        decimal(10_2) PreferredMaxHourlyFee
+        varchar(20) PreferredTeachingMode
+        text LearningGoalsNote
+        datetime(6) CreatedAt
+        datetime(6) UpdatedAt
     }
 
     LearnerRequirementCategories {
-        int Id PK "INT AUTO_INCREMENT"
-        string LearnerProfileId FK "CHAR(36) -> LearnerProfiles.Id"
-        int CategoryId FK "INT -> Categories.Id"
+        int Id PK
+        varchar(36) LearnerProfileId FK
+        int CategoryId FK
     }
 
     LearnerScheduleSlots {
-        int Id PK "INT AUTO_INCREMENT"
-        string LearnerProfileId FK "CHAR(36) -> LearnerProfiles.Id"
-        tinyint DayOfWeek "TINYINT (0=Sunday .. 6=Saturday)"
-        time StartTime "TIME"
-        time EndTime "TIME"
+        int Id PK
+        varchar(36) LearnerProfileId FK
+        tinyint DayOfWeek
+        time StartTime
+        time EndTime
     }
 
     Categories {
-        int Id PK "INT AUTO_INCREMENT"
-        string Name UK "VARCHAR(100)"
-        string Description "VARCHAR(500) NULL"
-        boolean IsActive "BOOLEAN (Default: true)"
-        datetime CreatedAt "DATETIME(6)"
-        datetime UpdatedAt "DATETIME(6) NULL"
+        int Id PK
+        varchar(100) Name UK
+        varchar(500) Description
+        boolean IsActive
+        datetime(6) CreatedAt
+        datetime(6) UpdatedAt
     }
 
     SubscriptionPackages {
-        int Id PK "INT AUTO_INCREMENT"
-        string TierName UK "VARCHAR(80)"
-        int DurationDays "INT"
-        decimal DisplayFee "DECIMAL(10,2)"
-        int MaxActiveSubjects "INT"
-        int PrioritySearchBoost "INT (Default: 0)"
-        string FeaturesJson "JSON / LONGTEXT NULL"
-        boolean IsActive "BOOLEAN (Default: true)"
-        datetime CreatedAt "DATETIME(6)"
-        datetime UpdatedAt "DATETIME(6) NULL"
+        int Id PK
+        varchar(80) TierName UK
+        int DurationDays
+        decimal(10_2) DisplayFee
+        int MaxActiveSubjects
+        int PrioritySearchBoost
+        longtext FeaturesJson
+        boolean IsActive
+        datetime(6) CreatedAt
+        datetime(6) UpdatedAt
     }
 
     SubscriptionPayments {
-        int Id PK "INT AUTO_INCREMENT"
-        string TutorProfileId FK "CHAR(36) -> TutorProfiles.Id"
-        int SubscriptionPackageId FK "INT -> SubscriptionPackages.Id"
-        decimal Amount "DECIMAL(18,2)"
-        string PaymentMethod "VARCHAR(50) (KBZPay|WavePay|AYAPay...)"
-        string TransactionLast6 "VARCHAR(20)"
-        string ScreenshotUrl "LONGTEXT (Base64 data URL)"
-        string Notes "VARCHAR(500) NULL"
-        string Status "VARCHAR(30) ('Pending'|'Confirmed'|'Rejected')"
-        string RejectionReason "VARCHAR(500) NULL"
-        string ReviewedByUserId FK "CHAR(36) -> Users.Id NULL"
-        datetime ReviewedAt "DATETIME(6) NULL"
-        datetime CreatedAt "DATETIME(6)"
-        datetime UpdatedAt "DATETIME(6) NULL"
+        int Id PK
+        varchar(36) TutorProfileId FK
+        int SubscriptionPackageId FK
+        decimal(18_2) Amount
+        varchar(50) PaymentMethod
+        varchar(20) TransactionLast6
+        longtext ScreenshotUrl
+        varchar(500) Notes
+        varchar(30) Status
+        varchar(500) RejectionReason
+        varchar(36) ReviewedByUserId FK
+        datetime(6) ReviewedAt
+        datetime(6) CreatedAt
+        datetime(6) UpdatedAt
     }
 
     TutorProfiles {
-        string Id PK "CHAR(36) GUID"
-        string UserId UK_FK "CHAR(36) -> Users.Id"
-        string Headline "VARCHAR(150) NULL"
-        string Biography "LONGTEXT NULL"
-        int YearsOfExperience "INT"
-        decimal HourlyFee "DECIMAL(10,2)"
-        string TeachingMode "VARCHAR(20) ('Online'|'InPerson'|'Both')"
-        string LayoutThemeJson "JSON / LONGTEXT NULL"
-        string ProfilePictureUrl "LONGTEXT NULL (Base64)"
-        string VerificationStatus "VARCHAR(20) ('Pending'|'Verified'|'Rejected')"
-        string RejectionReason "VARCHAR(500) NULL"
-        string VerifiedByUserId FK "CHAR(36) -> Users.Id NULL"
-        datetime VerifiedAt "DATETIME(6) NULL"
-        int CurrentSubscriptionPackageId FK "INT -> SubscriptionPackages.Id NULL"
-        datetime SubscriptionUpdatedAt "DATETIME(6) NULL"
-        decimal AverageRating "DECIMAL(3,2) (Default: 0.00)"
-        int TotalReviewsCount "INT (Default: 0)"
-        boolean IsPublished "BOOLEAN (Default: false)"
-        datetime CreatedAt "DATETIME(6)"
-        datetime UpdatedAt "DATETIME(6) NULL"
+        varchar(36) Id PK
+        varchar(36) UserId UK_FK
+        varchar(150) Headline
+        longtext Biography
+        int YearsOfExperience
+        decimal(10_2) HourlyFee
+        varchar(20) TeachingMode
+        longtext LayoutThemeJson
+        longtext ProfilePictureUrl
+        varchar(20) VerificationStatus
+        varchar(500) RejectionReason
+        varchar(36) VerifiedByUserId FK
+        datetime(6) VerifiedAt
+        int CurrentSubscriptionPackageId FK
+        datetime(6) SubscriptionUpdatedAt
+        decimal(3_2) AverageRating
+        int TotalReviewsCount
+        boolean IsPublished
+        datetime(6) CreatedAt
+        datetime(6) UpdatedAt
     }
 
     TutorDocuments {
-        int Id PK "INT AUTO_INCREMENT"
-        string TutorProfileId FK "CHAR(36) -> TutorProfiles.Id"
-        string DocumentType "VARCHAR(80) (IdentityID|AcademicCertificate...)"
-        string FileName "VARCHAR(255) NULL"
-        string FileUrl "LONGTEXT (Base64 data URL)"
-        bigint FileSizeBytes "BIGINT (Default: 0)"
-        datetime UploadedAt "DATETIME(6)"
+        int Id PK
+        varchar(36) TutorProfileId FK
+        varchar(80) DocumentType
+        varchar(255) FileName
+        longtext FileUrl
+        bigint FileSizeBytes
+        datetime(6) UploadedAt
     }
 
     TutorCategories {
-        int Id PK "INT AUTO_INCREMENT"
-        string TutorProfileId FK "CHAR(36) -> TutorProfiles.Id"
-        int CategoryId FK "INT -> Categories.Id"
-        string GradeLevelTarget "VARCHAR(50) NULL"
+        int Id PK
+        varchar(36) TutorProfileId FK
+        int CategoryId FK
+        varchar(50) GradeLevelTarget
     }
 
     TutorScheduleSlots {
-        int Id PK "INT AUTO_INCREMENT"
-        string TutorProfileId FK "CHAR(36) -> TutorProfiles.Id"
-        tinyint DayOfWeek "TINYINT (0=Sunday .. 6=Saturday)"
-        time StartTime "TIME"
-        time EndTime "TIME"
+        int Id PK
+        varchar(36) TutorProfileId FK
+        tinyint DayOfWeek
+        time StartTime
+        time EndTime
     }
 
     Inquiries {
-        string Id PK "CHAR(36) GUID"
-        string LearnerUserId FK "CHAR(36) -> Users.Id"
-        string TutorProfileId FK "CHAR(36) -> TutorProfiles.Id"
-        int CategoryId FK "INT -> Categories.Id"
-        string InitialRequirementSummary "LONGTEXT"
-        string Status "VARCHAR(20) ('Pending'|'Accepted'|'Declined')"
-        string FirebaseThreadId UK "VARCHAR(128)"
-        datetime CreatedAt "DATETIME(6)"
-        datetime RespondedAt "DATETIME(6) NULL"
-        datetime UpdatedAt "DATETIME(6) NULL"
+        varchar(36) Id PK
+        varchar(36) LearnerUserId FK
+        varchar(36) TutorProfileId FK
+        int CategoryId FK
+        longtext InitialRequirementSummary
+        varchar(20) Status
+        varchar(128) FirebaseThreadId UK
+        datetime(6) CreatedAt
+        datetime(6) RespondedAt
+        datetime(6) UpdatedAt
     }
 
     Reviews {
-        string Id PK "CHAR(36) GUID"
-        string LearnerUserId FK "CHAR(36) -> Users.Id"
-        string TutorProfileId FK "CHAR(36) -> TutorProfiles.Id"
-        int StarRating "INT (1 to 5)"
-        string Comment "LONGTEXT"
-        datetime CreatedAt "DATETIME(6)"
-        datetime UpdatedAt "DATETIME(6) NULL"
+        varchar(36) Id PK
+        varchar(36) LearnerUserId FK
+        varchar(36) TutorProfileId FK
+        int StarRating
+        longtext Comment
+        datetime(6) CreatedAt
+        datetime(6) UpdatedAt
     }
 
     SearchAuditLogs {
-        int Id PK "INT AUTO_INCREMENT"
-        int CategoryId FK "INT -> Categories.Id NULL"
-        string LearnerUserId FK "CHAR(36) -> Users.Id NULL"
-        datetime SearchedAt "DATETIME(6)"
+        int Id PK
+        int CategoryId FK
+        varchar(36) LearnerUserId FK
+        datetime(6) SearchedAt
     }
 
     SystemSettings {
-        string Key PK "VARCHAR(100)"
-        string ValueJson "LONGTEXT (JSON)"
-        datetime UpdatedAt "DATETIME(6)"
+        varchar(100) Key PK
+        longtext ValueJson
+        datetime(6) UpdatedAt
     }
 ```
 
-### 2.2 Referential Integrity & Cascade Actions Matrix
+### 2.2 Physical Schema Data Dictionary & Constraints Matrix
 
-| Table | Primary Key | Foreign Key(s) & Target | Constraints & Unique Keys | Referential Cascade Action |
-| :--- | :--- | :--- | :--- | :--- |
-| **`Users`** | `Id` (GUID) | — | Unique `Email`, `UserName` | — |
-| **`Roles`** | `Id` (GUID) | — | Unique `Name` | — |
-| **`UserRoles`** | `(UserId, RoleId)` | `UserId -> Users.Id`<br>`RoleId -> Roles.Id` | Composite Primary Key | `ON DELETE CASCADE` |
-| **`RoleClaims`** | `Id` (Auto) | `RoleId -> Roles.Id` | Unique `(RoleId, ClaimType)` | `ON DELETE CASCADE` |
-| **`LearnerProfiles`** | `Id` (GUID) | `UserId -> Users.Id` | Unique `UserId` (1:1 relation) | `ON DELETE CASCADE` |
-| **`LearnerRequirementCategories`** | `Id` (Auto) | `LearnerProfileId -> LearnerProfiles.Id`<br>`CategoryId -> Categories.Id` | — | Profile: `CASCADE`<br>Category: `RESTRICT` |
-| **`LearnerScheduleSlots`** | `Id` (Auto) | `LearnerProfileId -> LearnerProfiles.Id` | — | `ON DELETE CASCADE` |
-| **`Categories`** | `Id` (Auto) | — | Unique `Name` | — |
-| **`SubscriptionPackages`** | `Id` (Auto) | — | Unique `TierName` | — |
-| **`SubscriptionPayments`** | `Id` (Auto) | `TutorProfileId -> TutorProfiles.Id`<br>`SubscriptionPackageId -> SubscriptionPackages.Id`<br>`ReviewedByUserId -> Users.Id` | — | Tutor: `CASCADE`<br>Package: `RESTRICT`<br>Reviewer: `SET NULL` |
-| **`TutorProfiles`** | `Id` (GUID) | `UserId -> Users.Id`<br>`VerifiedByUserId -> Users.Id`<br>`CurrentSubscriptionPackageId -> SubscriptionPackages.Id` | Unique `UserId` (1:1 relation) | User: `CASCADE`<br>Reviewer: `SET NULL`<br>Package: `SET NULL` |
-| **`TutorDocuments`** | `Id` (Auto) | `TutorProfileId -> TutorProfiles.Id` | — | `ON DELETE CASCADE` |
-| **`TutorCategories`** | `Id` (Auto) | `TutorProfileId -> TutorProfiles.Id`<br>`CategoryId -> Categories.Id` | — | Profile: `CASCADE`<br>Category: `RESTRICT` |
-| **`TutorScheduleSlots`** | `Id` (Auto) | `TutorProfileId -> TutorProfiles.Id` | — | `ON DELETE CASCADE` |
-| **`Inquiries`** | `Id` (GUID) | `LearnerUserId -> Users.Id`<br>`TutorProfileId -> TutorProfiles.Id`<br>`CategoryId -> Categories.Id` | Unique `FirebaseThreadId` | Learner: `RESTRICT`<br>Tutor: `CASCADE`<br>Category: `RESTRICT` |
-| **`Reviews`** | `Id` (GUID) | `LearnerUserId -> Users.Id`<br>`TutorProfileId -> TutorProfiles.Id` | Unique `(LearnerUserId, TutorProfileId)` | Learner: `RESTRICT`<br>Tutor: `CASCADE` |
-| **`SearchAuditLogs`** | `Id` (Auto) | `CategoryId -> Categories.Id`<br>`LearnerUserId -> Users.Id` | — | `ON DELETE SET NULL` on both |
-| **`SystemSettings`** | `Key` (String) | — | Primary Key `Key` | Key-value dictionary |
+Below is the exhaustive relational definition for each table in MariaDB, including exact column data types, precision, declared lengths, constraints, and cascade actions.
+
+#### A. Core IAM Subsystem
+* **`Users`**
+  * `Id`: `VARCHAR(36)` — Primary Key (GUID string).
+  * `Email`: `VARCHAR(150)` — Not Null, Unique Index (`UK_Users_Email`).
+  * `UserName`: `VARCHAR(100)` — Not Null, Unique Index (`UK_Users_UserName`).
+  * `FullName`: `VARCHAR(150)` — Not Null.
+  * `PasswordHash`: `LONGTEXT` — Not Null (BCrypt hash string).
+  * `PhoneNumber`: `VARCHAR(50)` — Nullable.
+  * `IsActive`: `BOOLEAN` — Not Null, Default `TRUE`.
+  * `CreatedAt`: `DATETIME(6)` — Not Null.
+  * `UpdatedAt`: `DATETIME(6)` — Nullable.
+
+* **`Roles`**
+  * `Id`: `VARCHAR(36)` — Primary Key (GUID string).
+  * `Name`: `VARCHAR(80)` — Not Null, Unique Index (`UK_Roles_Name`).
+  * `Description`: `VARCHAR(255)` — Nullable.
+
+* **`UserRoles`** (Junction Table)
+  * `UserId`: `VARCHAR(36)` — Primary Key (Composite), Foreign Key $\rightarrow$ `Users.Id` (`ON DELETE CASCADE`).
+  * `RoleId`: `VARCHAR(36)` — Primary Key (Composite), Foreign Key $\rightarrow$ `Roles.Id` (`ON DELETE CASCADE`).
+
+* **`RoleClaims`**
+  * `Id`: `INT` — Primary Key (Auto-Increment).
+  * `RoleId`: `VARCHAR(36)` — Not Null, Foreign Key $\rightarrow$ `Roles.Id` (`ON DELETE CASCADE`).
+  * `ClaimType`: `VARCHAR(150)` — Not Null (Unique with `RoleId`: `UK_RoleClaims_RoleId_Type`).
+  * `ClaimValue`: `VARCHAR(50)` — Not Null, Default `'true'`.
+
+---
+
+#### B. Learner Subsystem
+* **`LearnerProfiles`**
+  * `Id`: `VARCHAR(36)` — Primary Key (GUID string).
+  * `UserId`: `VARCHAR(36)` — Not Null, Unique Index, Foreign Key $\rightarrow$ `Users.Id` (`ON DELETE CASCADE`).
+  * `AccountSubType`: `VARCHAR(20)` — Not Null (`'Parent'` or `'Student'`).
+  * `GradeLevel`: `VARCHAR(50)` — Nullable.
+  * `PreferredMaxHourlyFee`: `DECIMAL(10,2)` — Not Null.
+  * `PreferredTeachingMode`: `VARCHAR(20)` — Not Null (`'Online'`, `'InPerson'`, `'Both'`).
+  * `LearningGoalsNote`: `TEXT` — Nullable.
+  * `CreatedAt`: `DATETIME(6)` — Not Null.
+  * `UpdatedAt`: `DATETIME(6)` — Nullable.
+
+* **`LearnerRequirementCategories`** (Intersection Table)
+  * `Id`: `INT` — Primary Key (Auto-Increment).
+  * `LearnerProfileId`: `VARCHAR(36)` — Not Null, Foreign Key $\rightarrow$ `LearnerProfiles.Id` (`ON DELETE CASCADE`).
+  * `CategoryId`: `INT` — Not Null, Foreign Key $\rightarrow$ `Categories.Id` (`ON DELETE RESTRICT`).
+
+* **`LearnerScheduleSlots`**
+  * `Id`: `INT` — Primary Key (Auto-Increment).
+  * `LearnerProfileId`: `VARCHAR(36)` — Not Null, Foreign Key $\rightarrow$ `LearnerProfiles.Id` (`ON DELETE CASCADE`).
+  * `DayOfWeek`: `TINYINT` — Not Null (`0` = Sunday .. `6` = Saturday).
+  * `StartTime`: `TIME` — Not Null.
+  * `EndTime`: `TIME` — Not Null.
+
+---
+
+#### C. Tutor Subsystem
+* **`TutorProfiles`**
+  * `Id`: `VARCHAR(36)` — Primary Key (GUID string).
+  * `UserId`: `VARCHAR(36)` — Not Null, Unique Index, Foreign Key $\rightarrow$ `Users.Id` (`ON DELETE CASCADE`).
+  * `Headline`: `VARCHAR(150)` — Nullable.
+  * `Biography`: `LONGTEXT` — Nullable.
+  * `YearsOfExperience`: `INT` — Not Null.
+  * `HourlyFee`: `DECIMAL(10,2)` — Not Null.
+  * `TeachingMode`: `VARCHAR(20)` — Not Null (`'Online'`, `'InPerson'`, `'Both'`).
+  * `LayoutThemeJson`: `LONGTEXT` — Nullable (JSON profile theme configuration).
+  * `ProfilePictureUrl`: `LONGTEXT` — Nullable (Base64 data URL).
+  * `VerificationStatus`: `VARCHAR(20)` — Not Null (`'Pending'`, `'Verified'`, `'Rejected'`).
+  * `RejectionReason`: `VARCHAR(500)` — Nullable.
+  * `VerifiedByUserId`: `VARCHAR(36)` — Nullable, Foreign Key $\rightarrow$ `Users.Id` (`ON DELETE SET NULL`).
+  * `VerifiedAt`: `DATETIME(6)` — Nullable.
+  * `CurrentSubscriptionPackageId`: `INT` — Nullable, Foreign Key $\rightarrow$ `SubscriptionPackages.Id` (`ON DELETE SET NULL`).
+  * `SubscriptionUpdatedAt`: `DATETIME(6)` — Nullable.
+  * `AverageRating`: `DECIMAL(3,2)` — Not Null, Default `0.00`.
+  * `TotalReviewsCount`: `INT` — Not Null, Default `0`.
+  * `IsPublished`: `BOOLEAN` — Not Null, Default `FALSE`.
+  * `CreatedAt`: `DATETIME(6)` — Not Null.
+  * `UpdatedAt`: `DATETIME(6)` — Nullable.
+
+* **`TutorDocuments`**
+  * `Id`: `INT` — Primary Key (Auto-Increment).
+  * `TutorProfileId`: `VARCHAR(36)` — Not Null, Foreign Key $\rightarrow$ `TutorProfiles.Id` (`ON DELETE CASCADE`).
+  * `DocumentType`: `VARCHAR(80)` — Not Null (`'IdentityID'`, `'AcademicCertificate'`, `'TutoringProof'`, `'Other'`).
+  * `FileName`: `VARCHAR(255)` — Nullable.
+  * `FileUrl`: `LONGTEXT` — Not Null (Base64 data URL).
+  * `FileSizeBytes`: `BIGINT` — Not Null, Default `0`.
+  * `UploadedAt`: `DATETIME(6)` — Not Null.
+
+* **`TutorCategories`** (Intersection Table)
+  * `Id`: `INT` — Primary Key (Auto-Increment).
+  * `TutorProfileId`: `VARCHAR(36)` — Not Null, Foreign Key $\rightarrow$ `TutorProfiles.Id` (`ON DELETE CASCADE`).
+  * `CategoryId`: `INT` — Not Null, Foreign Key $\rightarrow$ `Categories.Id` (`ON DELETE RESTRICT`).
+  * `GradeLevelTarget`: `VARCHAR(50)` — Nullable.
+
+* **`TutorScheduleSlots`**
+  * `Id`: `INT` — Primary Key (Auto-Increment).
+  * `TutorProfileId`: `VARCHAR(36)` — Not Null, Foreign Key $\rightarrow$ `TutorProfiles.Id` (`ON DELETE CASCADE`).
+  * `DayOfWeek`: `TINYINT` — Not Null (`0` = Sunday .. `6` = Saturday).
+  * `StartTime`: `TIME` — Not Null.
+  * `EndTime`: `TIME` — Not Null.
+
+---
+
+#### D. Catalog, Subscriptions & Payments
+* **`Categories`**
+  * `Id`: `INT` — Primary Key (Auto-Increment).
+  * `Name`: `VARCHAR(100)` — Not Null, Unique Index (`UK_Categories_Name`).
+  * `Description`: `VARCHAR(500)` — Nullable.
+  * `IsActive`: `BOOLEAN` — Not Null, Default `TRUE`.
+  * `CreatedAt`: `DATETIME(6)` — Not Null.
+  * `UpdatedAt`: `DATETIME(6)` — Nullable.
+
+* **`SubscriptionPackages`**
+  * `Id`: `INT` — Primary Key (Auto-Increment).
+  * `TierName`: `VARCHAR(80)` — Not Null, Unique Index (`UK_SubPackages_TierName`).
+  * `DurationDays`: `INT` — Not Null.
+  * `DisplayFee`: `DECIMAL(10,2)` — Not Null.
+  * `MaxActiveSubjects`: `INT` — Not Null.
+  * `PrioritySearchBoost`: `INT` — Not Null, Default `0`.
+  * `FeaturesJson`: `LONGTEXT` — Nullable (JSON array).
+  * `IsActive`: `BOOLEAN` — Not Null, Default `TRUE`.
+  * `CreatedAt`: `DATETIME(6)` — Not Null.
+  * `UpdatedAt`: `DATETIME(6)` — Nullable.
+
+* **`SubscriptionPayments`**
+  * `Id`: `INT` — Primary Key (Auto-Increment).
+  * `TutorProfileId`: `VARCHAR(36)` — Not Null, Foreign Key $\rightarrow$ `TutorProfiles.Id` (`ON DELETE CASCADE`).
+  * `SubscriptionPackageId`: `INT` — Not Null, Foreign Key $\rightarrow$ `SubscriptionPackages.Id` (`ON DELETE RESTRICT`).
+  * `Amount`: `DECIMAL(18,2)` — Not Null.
+  * `PaymentMethod`: `VARCHAR(50)` — Not Null (`'KBZPay'`, `'WavePay'`, `'AYAPay'`, `'CBPay'`, `'BankTransfer'`).
+  * `TransactionLast6`: `VARCHAR(20)` — Not Null.
+  * `ScreenshotUrl`: `LONGTEXT` — Not Null (Base64 data URL).
+  * `Notes`: `VARCHAR(500)` — Nullable.
+  * `Status`: `VARCHAR(30)` — Not Null, Default `'Pending'` (`'Pending'`, `'Confirmed'`, `'Rejected'`).
+  * `RejectionReason`: `VARCHAR(500)` — Nullable.
+  * `ReviewedByUserId`: `VARCHAR(36)` — Nullable, Foreign Key $\rightarrow$ `Users.Id` (`ON DELETE SET NULL`).
+  * `ReviewedAt`: `DATETIME(6)` — Nullable.
+  * `CreatedAt`: `DATETIME(6)` — Not Null.
+  * `UpdatedAt`: `DATETIME(6)` — Nullable.
+
+---
+
+#### E. Communications, Reviews & Auditing
+* **`Inquiries`**
+  * `Id`: `VARCHAR(36)` — Primary Key (GUID string).
+  * `LearnerUserId`: `VARCHAR(36)` — Not Null, Foreign Key $\rightarrow$ `Users.Id` (`ON DELETE RESTRICT`).
+  * `TutorProfileId`: `VARCHAR(36)` — Not Null, Foreign Key $\rightarrow$ `TutorProfiles.Id` (`ON DELETE CASCADE`).
+  * `CategoryId`: `INT` — Not Null, Foreign Key $\rightarrow$ `Categories.Id` (`ON DELETE RESTRICT`).
+  * `InitialRequirementSummary`: `LONGTEXT` — Not Null.
+  * `Status`: `VARCHAR(20)` — Not Null, Default `'Pending'` (`'Pending'`, `'Accepted'`, `'Declined'`).
+  * `FirebaseThreadId`: `VARCHAR(128)` — Not Null, Unique Index (`UK_Inquiries_FirebaseThreadId`).
+  * `CreatedAt`: `DATETIME(6)` — Not Null.
+  * `RespondedAt`: `DATETIME(6)` — Nullable.
+  * `UpdatedAt`: `DATETIME(6)` — Nullable.
+
+* **`Reviews`**
+  * `Id`: `VARCHAR(36)` — Primary Key (GUID string).
+  * `LearnerUserId`: `VARCHAR(36)` — Not Null, Foreign Key $\rightarrow$ `Users.Id` (`ON DELETE RESTRICT`).
+  * `TutorProfileId`: `VARCHAR(36)` — Not Null, Foreign Key $\rightarrow$ `TutorProfiles.Id` (`ON DELETE CASCADE`).
+  * `StarRating`: `INT` — Not Null (Constrained `1` to `5`).
+  * `Comment`: `LONGTEXT` — Not Null.
+  * `CreatedAt`: `DATETIME(6)` — Not Null.
+  * `UpdatedAt`: `DATETIME(6)` — Nullable.
+  * *Constraint:* Unique Composite Index `(LearnerUserId, TutorProfileId)`.
+
+* **`SearchAuditLogs`**
+  * `Id`: `INT` — Primary Key (Auto-Increment).
+  * `CategoryId`: `INT` — Nullable, Foreign Key $\rightarrow$ `Categories.Id` (`ON DELETE SET NULL`).
+  * `LearnerUserId`: `VARCHAR(36)` — Nullable, Foreign Key $\rightarrow$ `Users.Id` (`ON DELETE SET NULL`).
+  * `SearchedAt`: `DATETIME(6)` — Not Null.
+
+* **`SystemSettings`**
+  * `Key`: `VARCHAR(100)` — Primary Key.
+  * `ValueJson`: `LONGTEXT` — Not Null (JSON payload).
+  * `UpdatedAt`: `DATETIME(6)` — Not Null.
 
 ---
 

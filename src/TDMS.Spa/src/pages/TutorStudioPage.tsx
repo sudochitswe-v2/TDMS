@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/api'
 import { formatTimeAmPm, formatFileSize } from '../lib/formatters'
 import { useAuth } from '../context/AuthContext'
+import { DetailProfileSkeleton } from '../components/Loading'
+import { TimeSelect } from '../components/TimeSelect'
 import {
   GraduationCap,
   Calendar,
@@ -465,11 +467,7 @@ export const TutorStudioPage: React.FC = () => {
   }
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-20 text-center text-sm text-muted-foreground">
-        Loading tutor studio workspace...
-      </div>
-    )
+    return <DetailProfileSkeleton title="Loading tutor studio workspace..." />
   }
 
   return (
@@ -529,47 +527,71 @@ export const TutorStudioPage: React.FC = () => {
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="flex border-b space-x-4 text-sm font-semibold overflow-x-auto">
-        <button
-          onClick={() => setActiveTab('teaching')}
-          className={`pb-3 transition border-b-2 whitespace-nowrap ${activeTab === 'teaching'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-muted-foreground hover:text-foreground'
+      {/* Responsive Tab Bar (Sticky, Touch-Friendly, No Ugly Scrollbars) */}
+      <div className="sticky top-16 z-20 bg-background/95 backdrop-blur-md pt-2 pb-3 -mx-4 px-4 sm:mx-0 sm:px-0 border-b">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar scroll-smooth">
+          <button
+            type="button"
+            onClick={() => setActiveTab('teaching')}
+            className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition shrink-0 whitespace-nowrap active:scale-95 touch-manipulation cursor-pointer ${
+              activeTab === 'teaching'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'bg-card border text-muted-foreground hover:bg-secondary hover:text-foreground'
             }`}
-        >
-          Teaching Info & Schedule
-        </button>
-        <button
-          onClick={() => setActiveTab('customization')}
-          className={`pb-3 transition border-b-2 whitespace-nowrap ${activeTab === 'customization'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-muted-foreground hover:text-foreground'
+          >
+            <Calendar className="h-4 w-4" />
+            <span className="hidden sm:inline">Teaching Info & Schedule</span>
+            <span className="sm:hidden">Teaching & Slots</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('customization')}
+            className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition shrink-0 whitespace-nowrap active:scale-95 touch-manipulation cursor-pointer ${
+              activeTab === 'customization'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'bg-card border text-muted-foreground hover:bg-secondary hover:text-foreground'
             }`}
-        >
-          Profile Customization & Visibility
-        </button>
-        <button
-          onClick={() => setActiveTab('verification')}
-          className={`pb-3 transition border-b-2 whitespace-nowrap flex items-center space-x-1.5 ${activeTab === 'verification'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-muted-foreground hover:text-foreground'
+          >
+            <Palette className="h-4 w-4" />
+            <span className="hidden sm:inline">Profile Customization & Visibility</span>
+            <span className="sm:hidden">Profile Design</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('verification')}
+            className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition shrink-0 whitespace-nowrap active:scale-95 touch-manipulation cursor-pointer ${
+              activeTab === 'verification'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'bg-card border text-muted-foreground hover:bg-secondary hover:text-foreground'
             }`}
-        >
-          <span>Verification & Credentials</span>
-          {tutor?.verificationStatus === 'Rejected' && (
-            <span className="h-2 w-2 rounded-full bg-destructive animate-pulse" />
-          )}
-        </button>
-        <button
-          onClick={() => setActiveTab('subscription')}
-          className={`pb-3 transition border-b-2 whitespace-nowrap ${activeTab === 'subscription'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-muted-foreground hover:text-foreground'
+          >
+            <ShieldCheck className="h-4 w-4" />
+            <span className="hidden sm:inline">Verification & Credentials</span>
+            <span className="sm:hidden">Credentials</span>
+            {tutor?.verificationStatus === 'Rejected' && (
+              <span className="h-2 w-2 rounded-full bg-destructive animate-pulse" />
+            )}
+            {tutor?.verificationStatus === 'Verified' && (
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('subscription')}
+            className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition shrink-0 whitespace-nowrap active:scale-95 touch-manipulation cursor-pointer ${
+              activeTab === 'subscription'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'bg-card border text-muted-foreground hover:bg-secondary hover:text-foreground'
             }`}
-        >
-          Subscription Packages
-        </button>
+          >
+            <CreditCard className="h-4 w-4" />
+            <span className="hidden sm:inline">Subscription Packages</span>
+            <span className="sm:hidden">Subscription</span>
+          </button>
+        </div>
       </div>
 
       {/* Tab 1: Teaching Info */}
@@ -672,44 +694,66 @@ export const TutorStudioPage: React.FC = () => {
               </button>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {scheduleSlots.map((slot, idx) => (
-                <div key={idx} className="flex items-center gap-3 p-3 rounded-xl border bg-secondary/20">
-                  <select
-                    value={slot.dayOfWeek}
-                    onChange={(e) => updateSlot(idx, 'dayOfWeek', Number(e.target.value))}
-                    className="px-2 py-1.5 text-xs rounded-lg border bg-background"
-                  >
-                    {DAYS.map((d, i) => (
-                      <option key={i} value={i}>
-                        {d}
-                      </option>
-                    ))}
-                  </select>
+                <div
+                  key={idx}
+                  className="p-3.5 rounded-2xl border bg-secondary/20 space-y-2.5 sm:space-y-0 sm:flex sm:items-center sm:gap-3 transition"
+                >
+                  {/* Top row on mobile: Day selector + Delete button */}
+                  <div className="flex items-center justify-between sm:justify-start gap-2">
+                    <select
+                      value={slot.dayOfWeek}
+                      onChange={(e) => updateSlot(idx, 'dayOfWeek', Number(e.target.value))}
+                      className="w-full sm:w-auto px-3 py-1.5 text-xs font-medium rounded-lg border bg-background text-foreground dark:bg-card dark:text-card-foreground"
+                    >
+                      {DAYS.map((d, i) => (
+                        <option
+                          key={i}
+                          value={i}
+                          className="bg-card text-card-foreground dark:bg-slate-900 dark:text-slate-100"
+                        >
+                          {d}
+                        </option>
+                      ))}
+                    </select>
 
+                    <button
+                      type="button"
+                      onClick={() => removeSlot(idx)}
+                      className="sm:hidden p-1.5 rounded-lg text-destructive hover:bg-destructive/10"
+                      title="Remove slot"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  {/* Bottom row on mobile: Time selector with AM/PM selector + Formatted badge */}
                   <div className="flex flex-wrap items-center gap-2">
-                    <input
-                      type="time"
-                      value={slot.startTime}
-                      onChange={(e) => updateSlot(idx, 'startTime', e.target.value)}
-                      className="px-2 py-1 text-xs rounded-lg border bg-background"
-                    />
-                    <span className="text-xs text-muted-foreground">to</span>
-                    <input
-                      type="time"
-                      value={slot.endTime}
-                      onChange={(e) => updateSlot(idx, 'endTime', e.target.value)}
-                      className="px-2 py-1 text-xs rounded-lg border bg-background"
-                    />
-                    <span className="text-xs font-medium text-primary px-2 py-0.5 rounded-md bg-primary/10 whitespace-nowrap">
+                    <div className="flex flex-wrap sm:flex-nowrap items-center gap-1.5">
+                      <TimeSelect
+                        value={slot.startTime}
+                        onChange={(val) => updateSlot(idx, 'startTime', val)}
+                        ariaLabelPrefix={`Slot ${idx + 1} Start`}
+                      />
+                      <span className="text-xs text-muted-foreground font-medium px-0.5">to</span>
+                      <TimeSelect
+                        value={slot.endTime}
+                        onChange={(val) => updateSlot(idx, 'endTime', val)}
+                        ariaLabelPrefix={`Slot ${idx + 1} End`}
+                      />
+                    </div>
+                    <span className="text-[11px] font-semibold text-primary px-2.5 py-1 rounded-md bg-primary/10 whitespace-nowrap">
                       {formatTimeAmPm(slot.startTime)} – {formatTimeAmPm(slot.endTime)}
                     </span>
                   </div>
 
+                  {/* Desktop delete button */}
                   <button
                     type="button"
                     onClick={() => removeSlot(idx)}
-                    className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10 ml-auto"
+                    className="hidden sm:inline-flex p-1.5 rounded-lg text-destructive hover:bg-destructive/10 ml-auto shrink-0"
+                    title="Remove slot"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -721,7 +765,7 @@ export const TutorStudioPage: React.FC = () => {
           <button
             type="submit"
             disabled={saveTeachingInfo.isPending}
-            className="px-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 transition shadow-sm"
+            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 transition shadow-sm cursor-pointer active:scale-95"
           >
             {saveTeachingInfo.isPending ? 'Saving...' : 'Save Teaching Information'}
           </button>
@@ -783,7 +827,7 @@ export const TutorStudioPage: React.FC = () => {
           <button
             type="submit"
             disabled={saveCustomization.isPending}
-            className="px-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 transition shadow-sm"
+            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 transition shadow-sm cursor-pointer active:scale-95"
           >
             {saveCustomization.isPending ? 'Saving...' : 'Save Profile Customization'}
           </button>
@@ -980,7 +1024,7 @@ export const TutorStudioPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={!selectedFileBase64 || uploadDocMutation.isPending}
-                className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 transition shadow-sm disabled:opacity-50 flex items-center space-x-1.5"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 transition shadow-sm disabled:opacity-50 flex items-center justify-center space-x-1.5"
               >
                 <Upload className="h-3.5 w-3.5" />
                 <span>{uploadDocMutation.isPending ? 'Uploading...' : 'Save Document to Profile'}</span>

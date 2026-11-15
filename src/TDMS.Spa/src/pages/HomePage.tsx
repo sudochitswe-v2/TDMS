@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/api'
+import { CardSkeleton } from '../components/Loading'
 import {
   Search,
   Sparkles,
@@ -24,7 +25,7 @@ export const HomePage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const navigate = useNavigate()
 
-  const { data: categories = [] } = useQuery<CategoryItem[]>({
+  const { data: categories = [], isLoading } = useQuery<CategoryItem[]>({
     queryKey: ['categories'],
     queryFn: () => api.get('/api/categories'),
   })
@@ -127,29 +128,33 @@ export const HomePage: React.FC = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {categories.slice(0, 6).map((cat) => (
-            <Link
-              key={cat.id}
-              to={`/tutors?categoryId=${cat.id}`}
-              className="group p-5 rounded-2xl border bg-card hover:border-primary/50 hover:shadow-sm transition flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-base sm:text-lg group-hover:text-primary transition">{cat.name}</h3>
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground shrink-0">
-                    {cat.tutorCount} {cat.tutorCount === 1 ? 'Tutor' : 'Tutors'}
-                  </span>
+        {isLoading ? (
+          <CardSkeleton count={6} variant="category" />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {categories.slice(0, 6).map((cat) => (
+              <Link
+                key={cat.id}
+                to={`/tutors?categoryId=${cat.id}`}
+                className="group p-5 rounded-2xl border bg-card hover:border-primary/50 hover:shadow-sm transition flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-base sm:text-lg group-hover:text-primary transition">{cat.name}</h3>
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground shrink-0">
+                      {cat.tutorCount} {cat.tutorCount === 1 ? 'Tutor' : 'Tutors'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{cat.description || 'Expert private coaching'}</p>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{cat.description || 'Expert private coaching'}</p>
-              </div>
-              <div className="mt-4 pt-3 border-t flex items-center justify-between text-xs font-semibold text-primary">
-                <span>View Tutors</span>
-                <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-1" />
-              </div>
-            </Link>
-          ))}
-        </div>
+                <div className="mt-4 pt-3 border-t flex items-center justify-between text-xs font-semibold text-primary">
+                  <span>View Tutors</span>
+                  <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-1" />
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Call to Action Banner */}

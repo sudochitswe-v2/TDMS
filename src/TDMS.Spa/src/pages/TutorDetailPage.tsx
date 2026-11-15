@@ -5,6 +5,7 @@ import { api } from '../lib/api'
 import { formatTimeAmPm } from '../lib/formatters'
 import { useAuth } from '../context/AuthContext'
 import { Pagination } from '../components/Pagination'
+import { DetailProfileSkeleton } from '../components/Loading'
 import {
   ShieldCheck,
   Star,
@@ -143,11 +144,7 @@ export const TutorDetailPage: React.FC = () => {
   }
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-20 text-center text-sm text-muted-foreground">
-        Loading tutor profile details...
-      </div>
-    )
+    return <DetailProfileSkeleton title="Loading tutor profile details..." />
   }
 
   if (!tutor) {
@@ -163,9 +160,9 @@ export const TutorDetailPage: React.FC = () => {
   const isOwnProfile = user?.userId === tutor.userId
 
   return (
-    <div className="container mx-auto px-4 py-10 max-w-5xl space-y-8">
+    <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-10 max-w-5xl space-y-6 sm:space-y-8">
       {/* Profile Header Card */}
-      <div className="p-8 rounded-3xl border bg-card shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <div className="p-5 sm:p-8 rounded-3xl border bg-card shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 flex-1">
           {/* Tutor Avatar */}
           <div className="shrink-0">

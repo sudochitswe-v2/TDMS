@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
+import { Skeleton, LoadingSpinner } from '../components/Loading'
 import {
   MessageSquare,
   Send,
@@ -50,7 +51,14 @@ export const MessagesPage: React.FC = () => {
     queryFn: () => api.get('/api/inquiries'),
   })
 
-  const selectedInquiry = inquiries.find((i) => i.id === selectedInquiryId) || inquiries[0]
+  // Auto-select first inquiry on desktop view if available
+  React.useEffect(() => {
+    if (inquiries.length > 0 && selectedInquiryId === null && typeof window !== 'undefined' && window.innerWidth >= 768) {
+      setSelectedInquiryId(inquiries[0].id)
+    }
+  }, [inquiries, selectedInquiryId])
+
+  const selectedInquiry = inquiries.find((i) => i.id === selectedInquiryId) || null
 
   const { data: messages = [], isLoading: messagesLoading } = useQuery<MessageItem[]>({
     queryKey: ['messages', selectedInquiry?.id],
@@ -89,8 +97,8 @@ export const MessagesPage: React.FC = () => {
   const isTutorForSelected = selectedInquiry && selectedInquiry.tutorUserId === user?.userId
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <div className="border rounded-3xl bg-card shadow-sm overflow-hidden flex flex-col md:flex-row h-[750px]">
+    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-6xl">
+      <div className="border rounded-3xl bg-card shadow-sm overflow-hidden flex flex-col md:flex-row h-[calc(100dvh-10rem)] min-h-[500px] md:h-[750px]">
         {/* Left Pane: Inquiries List */}
         <div className={`w-full md:w-80 border-r flex flex-col bg-secondary/10 ${selectedInquiry ? 'hidden md:flex' : 'flex'}`}>
           <div className="p-4 border-b">
@@ -102,7 +110,19 @@ export const MessagesPage: React.FC = () => {
 
           <div className="flex-1 overflow-y-auto divide-y">
             {inquiriesLoading && (
-              <div className="p-8 text-center text-xs text-muted-foreground">Loading inquiries...</div>
+              <div className="p-3 space-y-3">
+                <LoadingSpinner size="sm" text="Loading inquiries..." center />
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="p-3 rounded-2xl border bg-card/60 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Skeleton className="h-4 w-28" />
+                      <Skeleton className="h-4 w-14 rounded-full" />
+                    </div>
+                    <Skeleton className="h-3 w-36" />
+                    <Skeleton className="h-2.5 w-20" />
+                  </div>
+                ))}
+              </div>
             )}
 
             {!inquiriesLoading && inquiries.length === 0 && (
@@ -236,7 +256,21 @@ export const MessagesPage: React.FC = () => {
                     <p>Messaging unlocks once the tutor accepts the inquiry.</p>
                   </div>
                 ) : messagesLoading ? (
-                  <div className="text-center text-xs text-muted-foreground py-8">Loading messages...</div>
+                  <div className="space-y-4 py-4">
+                    <LoadingSpinner size="sm" text="Loading real-time message stream..." center />
+                    <div className="flex flex-col items-start space-y-1">
+                      <Skeleton className="h-10 w-48 rounded-2xl rounded-bl-none" />
+                      <Skeleton className="h-2 w-16" />
+                    </div>
+                    <div className="flex flex-col items-end space-y-1">
+                      <Skeleton className="h-12 w-64 rounded-2xl rounded-br-none" />
+                      <Skeleton className="h-2 w-16" />
+                    </div>
+                    <div className="flex flex-col items-start space-y-1">
+                      <Skeleton className="h-8 w-40 rounded-2xl rounded-bl-none" />
+                      <Skeleton className="h-2 w-16" />
+                    </div>
+                  </div>
                 ) : messages.length === 0 ? (
                   <div className="text-center text-xs text-muted-foreground py-8">
                     Inquiry accepted! Send your first direct message below.

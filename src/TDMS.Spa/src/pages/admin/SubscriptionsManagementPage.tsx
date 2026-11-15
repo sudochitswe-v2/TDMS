@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, ApiError } from '../../lib/api'
 import { Pagination } from '../../components/Pagination'
+import { CardSkeleton, LoadingSpinner } from '../../components/Loading'
 import {
   CreditCard,
   Plus,
@@ -300,8 +301,9 @@ export const SubscriptionsManagementPage: React.FC = () => {
       {/* Package Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {isLoading ? (
-          <div className="col-span-3 py-12 text-center text-muted-foreground text-sm">
-            Loading subscription packages...
+          <div className="col-span-3 space-y-4">
+            <LoadingSpinner size="md" text="Loading subscription tier packages..." center />
+            <CardSkeleton count={3} variant="package" />
           </div>
         ) : packages.length === 0 ? (
           <div className="col-span-3 py-12 text-center text-muted-foreground text-sm">

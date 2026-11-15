@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, ApiError } from '../../lib/api'
 import { Pagination } from '../../components/Pagination'
+import { CardSkeleton, LoadingSpinner } from '../../components/Loading'
 import {
   CreditCard,
   CheckCircle,
@@ -223,8 +224,9 @@ export const SubscriptionPaymentsPage: React.FC = () => {
       </div>
 
       {isLoading ? (
-        <div className="p-12 text-center text-muted-foreground text-sm">
-          Loading subscription payment proofs...
+        <div className="space-y-4 py-4">
+          <LoadingSpinner size="md" text="Loading subscription payment proofs..." center />
+          <CardSkeleton count={3} variant="tutor" />
         </div>
       ) : filtered.length === 0 ? (
         <div className="p-12 text-center rounded-2xl border bg-card space-y-3">

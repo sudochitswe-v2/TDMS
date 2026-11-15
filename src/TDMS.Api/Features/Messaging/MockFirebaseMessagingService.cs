@@ -16,6 +16,11 @@ public class MockFirebaseMessagingService : IFirebaseMessagingService
         return Task.CompletedTask;
     }
 
+    public Task UpdateThreadStatusAsync(string threadId, string status, CancellationToken cancellationToken = default)
+    {
+        return Task.CompletedTask;
+    }
+
     public Task<MessageDto> SendMessageAsync(string threadId, string senderUserId, string senderName, string text, CancellationToken cancellationToken = default)
     {
         var message = new MessageDto(

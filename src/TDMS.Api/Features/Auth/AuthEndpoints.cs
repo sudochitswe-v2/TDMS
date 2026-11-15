@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Routing;
 namespace TDMS.Api.Features.Auth;
 
 public record LoginRequest(string Email, string Password);
+public record QuickLoginRequest(string? Email = null, string? UserId = null);
 
 public record RegisterLearnerRequest(
     string FullName,
@@ -35,6 +36,22 @@ public static class AuthEndpoints
 
         // POST /api/auth/login
         group.MapPost("/login", async (LoginRequest request, Login feature) =>
+        {
+            var result = await feature.ExecuteAsync(request);
+            return result.ToHttpResult();
+        })
+        .AllowAnonymous();
+
+        // GET /api/auth/quick-login/users
+        group.MapGet("/quick-login/users", async (GetQuickLoginUsers feature) =>
+        {
+            var result = await feature.ExecuteAsync();
+            return Results.Ok(result);
+        })
+        .AllowAnonymous();
+
+        // POST /api/auth/quick-login
+        group.MapPost("/quick-login", async (QuickLoginRequest request, QuickLogin feature) =>
         {
             var result = await feature.ExecuteAsync(request);
             return result.ToHttpResult();

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, ApiError } from '../../lib/api'
+import { Skeleton, LoadingSpinner } from '../../components/Loading'
 import {
   Sliders,
   CheckCircle,
@@ -161,122 +162,152 @@ export const SettingsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Sum Indicator Banner */}
-      <div
-        className={`p-4 rounded-2xl border flex items-center justify-between ${isValidSum
-          ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400'
-          : 'bg-destructive/10 border-destructive/30 text-destructive'
-          }`}
-      >
-        <div className="flex items-center space-x-3">
-          {isValidSum ? (
-            <CheckCircle className="w-5 h-5 shrink-0" />
-          ) : (
-            <AlertTriangle className="w-5 h-5 shrink-0" />
-          )}
-          <div>
-            <p className="font-bold text-sm">
-              Total Weight Sum: {totalSum}% {isValidSum ? '✓ Valid (100%)' : '✗ Invalid (Must equal 100%)'}
-            </p>
-            <p className="text-xs opacity-90 mt-0.5">
-              {isValidSum
-                ? 'All four criteria are proportionally balanced for deterministic matching scoring.'
-                : `Adjust individual criteria weights so their total reaches exactly 100% (currently ${diffText}).`}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Weights Configuration Sliders */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Subject Weight */}
-        <div className="p-6 rounded-2xl border bg-card shadow-sm space-y-4">
-          <div className="flex items-start justify-between">
-            <div>
-              <h3 className="font-bold text-base text-foreground">Subject Relevance (W_subject)</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Exact subject match = 100%, category match = 70%, no match = 0%
-              </p>
+      {isLoading ? (
+        <div className="space-y-6">
+          <LoadingSpinner size="md" text="Loading algorithm configuration parameters..." center />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="p-6 rounded-2xl border bg-card shadow-sm space-y-4">
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="h-3 w-64" />
+              <Skeleton className="h-4 w-full mt-4" />
             </div>
-            <span className="font-mono text-2xl font-extrabold text-primary">{s}%</span>
-          </div>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            step="1"
-            value={s}
-            onChange={(e) => setSubjectWeight(Number(e.target.value) || 0)}
-            className="w-full accent-primary cursor-pointer"
-          />
-        </div>
-
-        {/* Fee Weight */}
-        <div className="p-6 rounded-2xl border bg-card shadow-sm space-y-4">
-          <div className="flex items-start justify-between">
-            <div>
-              <h3 className="font-bold text-base text-foreground">Fee Budget Fit (W_fee)</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Within budget = 100%, linear decay up to 1.5x max budget
-              </p>
+            <div className="p-6 rounded-2xl border bg-card shadow-sm space-y-4">
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="h-3 w-64" />
+              <Skeleton className="h-4 w-full mt-4" />
             </div>
-            <span className="font-mono text-2xl font-extrabold text-primary">{f}%</span>
-          </div>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            step="1"
-            value={f}
-            onChange={(e) => setFeeWeight(Number(e.target.value) || 0)}
-            className="w-full accent-primary cursor-pointer"
-          />
-        </div>
-
-        {/* Schedule Weight */}
-        <div className="p-6 rounded-2xl border bg-card shadow-sm space-y-4">
-          <div className="flex items-start justify-between">
-            <div>
-              <h3 className="font-bold text-base text-foreground">Schedule Overlap (W_schedule)</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Calculates overlapping day/time availability slot ratio
-              </p>
+            <div className="p-6 rounded-2xl border bg-card shadow-sm space-y-4">
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="h-3 w-64" />
+              <Skeleton className="h-4 w-full mt-4" />
             </div>
-            <span className="font-mono text-2xl font-extrabold text-primary">{sc}%</span>
-          </div>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            step="1"
-            value={sc}
-            onChange={(e) => setScheduleWeight(Number(e.target.value) || 0)}
-            className="w-full accent-primary cursor-pointer"
-          />
-        </div>
-
-        {/* Mode Weight */}
-        <div className="p-6 rounded-2xl border bg-card shadow-sm space-y-4">
-          <div className="flex items-start justify-between">
-            <div>
-              <h3 className="font-bold text-base text-foreground">Teaching Mode Fit (W_mode)</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Online vs In-Person matching, or 'Both' wildcard compatibility
-              </p>
+            <div className="p-6 rounded-2xl border bg-card shadow-sm space-y-4">
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="h-3 w-64" />
+              <Skeleton className="h-4 w-full mt-4" />
             </div>
-            <span className="font-mono text-2xl font-extrabold text-primary">{m}%</span>
           </div>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            step="1"
-            value={m}
-            onChange={(e) => setModeWeight(Number(e.target.value) || 0)}
-            className="w-full accent-primary cursor-pointer"
-          />
         </div>
-      </div>
+      ) : (
+        <>
+          {/* Sum Indicator Banner */}
+          <div
+            className={`p-4 rounded-2xl border flex items-center justify-between ${isValidSum
+              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400'
+              : 'bg-destructive/10 border-destructive/30 text-destructive'
+              }`}
+          >
+            <div className="flex items-center space-x-3">
+              {isValidSum ? (
+                <CheckCircle className="w-5 h-5 shrink-0" />
+              ) : (
+                <AlertTriangle className="w-5 h-5 shrink-0" />
+              )}
+              <div>
+                <p className="font-bold text-sm">
+                  Total Weight Sum: {totalSum}% {isValidSum ? '✓ Valid (100%)' : '✗ Invalid (Must equal 100%)'}
+                </p>
+                <p className="text-xs opacity-90 mt-0.5">
+                  {isValidSum
+                    ? 'All four criteria are proportionally balanced for deterministic matching scoring.'
+                    : `Adjust individual criteria weights so their total reaches exactly 100% (currently ${diffText}).`}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Weights Configuration Sliders */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Subject Weight */}
+            <div className="p-6 rounded-2xl border bg-card shadow-sm space-y-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="font-bold text-base text-foreground">Subject Relevance (W_subject)</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Exact subject match = 100%, category match = 70%, no match = 0%
+                  </p>
+                </div>
+                <span className="font-mono text-2xl font-extrabold text-primary">{s}%</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                value={s}
+                onChange={(e) => setSubjectWeight(Number(e.target.value) || 0)}
+                className="w-full accent-primary cursor-pointer"
+              />
+            </div>
+
+            {/* Fee Weight */}
+            <div className="p-6 rounded-2xl border bg-card shadow-sm space-y-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="font-bold text-base text-foreground">Fee Budget Fit (W_fee)</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Within budget = 100%, linear decay up to 1.5x max budget
+                  </p>
+                </div>
+                <span className="font-mono text-2xl font-extrabold text-primary">{f}%</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                value={f}
+                onChange={(e) => setFeeWeight(Number(e.target.value) || 0)}
+                className="w-full accent-primary cursor-pointer"
+              />
+            </div>
+
+            {/* Schedule Weight */}
+            <div className="p-6 rounded-2xl border bg-card shadow-sm space-y-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="font-bold text-base text-foreground">Schedule Overlap (W_schedule)</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Calculates overlapping day/time availability slot ratio
+                  </p>
+                </div>
+                <span className="font-mono text-2xl font-extrabold text-primary">{sc}%</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                value={sc}
+                onChange={(e) => setScheduleWeight(Number(e.target.value) || 0)}
+                className="w-full accent-primary cursor-pointer"
+              />
+            </div>
+
+            {/* Mode Weight */}
+            <div className="p-6 rounded-2xl border bg-card shadow-sm space-y-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="font-bold text-base text-foreground">Teaching Mode Fit (W_mode)</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Online vs In-Person matching, or 'Both' wildcard compatibility
+                  </p>
+                </div>
+                <span className="font-mono text-2xl font-extrabold text-primary">{m}%</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                value={m}
+                onChange={(e) => setModeWeight(Number(e.target.value) || 0)}
+                className="w-full accent-primary cursor-pointer"
+              />
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Formula Explanation Card */}
       <div className="p-6 rounded-2xl border bg-secondary/30 space-y-3">

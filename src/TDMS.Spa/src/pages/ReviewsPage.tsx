@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import { Pagination } from '../components/Pagination'
+import { Skeleton, LoadingSpinner } from '../components/Loading'
 import { Star, MessageSquare, Edit3, CheckCircle2, AlertCircle } from 'lucide-react'
 
 interface ReviewItem {
@@ -84,7 +85,37 @@ export const ReviewsPage: React.FC = () => {
   }
 
   if (isLoading) {
-    return <div className="container mx-auto px-4 py-20 text-center text-sm text-muted-foreground">Loading reviews...</div>
+    return (
+      <div className="container mx-auto px-4 py-8 sm:py-10 max-w-4xl space-y-6 animate-in fade-in">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-4 w-72" />
+        </div>
+        <div className="flex space-x-2 border-b pb-2">
+          <Skeleton className="h-9 w-32 rounded-xl" />
+          <Skeleton className="h-9 w-32 rounded-xl" />
+        </div>
+        <LoadingSpinner size="md" text="Loading reviews..." center />
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="p-5 rounded-2xl border bg-card space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-20" />
+                  </div>
+                </div>
+                <Skeleton className="h-4 w-24" />
+              </div>
+              <Skeleton className="h-3 w-full" />
+              <Skeleton className="h-3 w-4/5" />
+            </div>
+          ))}
+        </div>
+      </div>
+    )
   }
 
   const authored = data?.authoredReviews || []
@@ -106,30 +137,50 @@ export const ReviewsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="flex border-b space-x-4 text-xs sm:text-sm font-semibold overflow-x-auto">
-        {canViewReviewsByMe && (
+      {/* Responsive Tabs (Sticky, Touch-Friendly, No Ugly Scrollbars) */}
+      <div className="sticky top-16 z-20 bg-background/95 backdrop-blur-md pt-2 pb-3 -mx-4 px-4 sm:mx-0 sm:px-0 border-b">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth">
+          {canViewReviewsByMe && (
+            <button
+              type="button"
+              onClick={() => setActiveTab('authored')}
+              className={`flex items-center space-x-1.5 sm:space-x-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition shrink-0 whitespace-nowrap active:scale-95 touch-manipulation cursor-pointer ${
+                activeTab === 'authored'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'bg-card border text-muted-foreground hover:bg-secondary hover:text-foreground'
+              }`}
+            >
+              <Edit3 className="h-4 w-4" />
+              <span>Reviews by Me</span>
+              <span
+                className={`ml-1 px-1.5 py-0.2 text-[10px] font-bold rounded-full ${
+                  activeTab === 'authored' ? 'bg-primary-foreground text-primary' : 'bg-primary/15 text-primary'
+                }`}
+              >
+                {authored.length}
+              </span>
+            </button>
+          )}
           <button
-            onClick={() => setActiveTab('authored')}
-            className={`pb-3 transition border-b-2 ${
-              activeTab === 'authored'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
+            type="button"
+            onClick={() => setActiveTab('received')}
+            className={`flex items-center space-x-1.5 sm:space-x-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition shrink-0 whitespace-nowrap active:scale-95 touch-manipulation cursor-pointer ${
+              activeTab === 'received'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'bg-card border text-muted-foreground hover:bg-secondary hover:text-foreground'
             }`}
           >
-            Reviews by Me ({authored.length})
+            <Star className="h-4 w-4" />
+            <span>Reviews Received</span>
+            <span
+              className={`ml-1 px-1.5 py-0.2 text-[10px] font-bold rounded-full ${
+                activeTab === 'received' ? 'bg-primary-foreground text-primary' : 'bg-primary/15 text-primary'
+              }`}
+            >
+              {received.length}
+            </span>
           </button>
-        )}
-        <button
-          onClick={() => setActiveTab('received')}
-          className={`pb-3 transition border-b-2 ${
-            activeTab === 'received'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          Reviews Received ({received.length})
-        </button>
+        </div>
       </div>
 
       {/* Tab Content */}

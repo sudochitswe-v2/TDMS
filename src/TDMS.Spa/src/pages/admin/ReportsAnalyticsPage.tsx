@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../../lib/api'
 import { Pagination } from '../../components/Pagination'
+import { TableSkeleton } from '../../components/Loading'
 import {
   TrendingUp,
   Layers,
@@ -69,11 +70,7 @@ export const ReportsAnalyticsPage: React.FC = () => {
             </thead>
             <tbody className="divide-y">
               {isLoading ? (
-                <tr>
-                  <td colSpan={5} className="py-8 text-center text-muted-foreground">
-                    Calculating marketplace analytics...
-                  </td>
-                </tr>
+                <TableSkeleton rows={5} cols={5} message="Calculating marketplace analytics..." />
               ) : demandSupply.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-8 text-center text-muted-foreground">

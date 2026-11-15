@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '../../lib/api'
 import { HasPermission } from '../../context/AuthContext'
 import { Pagination } from '../../components/Pagination'
+import { MetricsGridSkeleton, TableSkeleton, Skeleton } from '../../components/Loading'
 import {
   CreditCard,
   DollarSign,
@@ -225,77 +226,81 @@ export const PaymentReportsPage: React.FC = () => {
       </div>
 
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Realized Revenue */}
-        <div className="p-5 rounded-2xl border bg-card space-y-2 shadow-2xs">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Realized Gross Revenue</span>
-            <DollarSign className="h-4 w-4 text-emerald-500" />
+      {isLoading ? (
+        <MetricsGridSkeleton count={4} />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Total Realized Revenue */}
+          <div className="p-5 rounded-2xl border bg-card space-y-2 shadow-2xs">
+            <div className="flex items-center justify-between text-muted-foreground">
+              <span className="text-xs font-semibold">Realized Gross Revenue</span>
+              <DollarSign className="h-4 w-4 text-emerald-500" />
+            </div>
+            <p className="text-2xl sm:text-3xl font-extrabold text-foreground">
+              {summary.totalRevenue.toLocaleString()}{' '}
+              <span className="text-sm font-semibold text-muted-foreground">MMK</span>
+            </p>
+            <div className="flex items-center space-x-2 text-[11px] text-muted-foreground">
+              <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 font-bold border border-emerald-500/20">
+                {summary.confirmedCount} Confirmed
+              </span>
+              <span>from verified settlements</span>
+            </div>
           </div>
-          <p className="text-2xl sm:text-3xl font-extrabold text-foreground">
-            {summary.totalRevenue.toLocaleString()}{' '}
-            <span className="text-sm font-semibold text-muted-foreground">MMK</span>
-          </p>
-          <div className="flex items-center space-x-2 text-[11px] text-muted-foreground">
-            <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 font-bold border border-emerald-500/20">
-              {summary.confirmedCount} Confirmed
-            </span>
-            <span>from verified settlements</span>
-          </div>
-        </div>
 
-        {/* Pending Clearance */}
-        <div className="p-5 rounded-2xl border bg-card space-y-2 shadow-2xs">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Pending Verification</span>
-            <Clock className="h-4 w-4 text-amber-500" />
+          {/* Pending Clearance */}
+          <div className="p-5 rounded-2xl border bg-card space-y-2 shadow-2xs">
+            <div className="flex items-center justify-between text-muted-foreground">
+              <span className="text-xs font-semibold">Pending Verification</span>
+              <Clock className="h-4 w-4 text-amber-500" />
+            </div>
+            <p className="text-2xl sm:text-3xl font-extrabold text-foreground">
+              {summary.pendingRevenue.toLocaleString()}{' '}
+              <span className="text-sm font-semibold text-muted-foreground">MMK</span>
+            </p>
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-muted-foreground">{summary.pendingCount} Slips in Queue</span>
+              {summary.pendingCount > 0 && (
+                <Link
+                  to="/admin/subscription-payments"
+                  className="text-primary font-bold hover:underline flex items-center space-x-0.5"
+                >
+                  <span>Verify</span>
+                  <ArrowUpRight className="w-3 h-3" />
+                </Link>
+              )}
+            </div>
           </div>
-          <p className="text-2xl sm:text-3xl font-extrabold text-foreground">
-            {summary.pendingRevenue.toLocaleString()}{' '}
-            <span className="text-sm font-semibold text-muted-foreground">MMK</span>
-          </p>
-          <div className="flex items-center justify-between text-[11px]">
-            <span className="text-muted-foreground">{summary.pendingCount} Slips in Queue</span>
-            {summary.pendingCount > 0 && (
-              <Link
-                to="/admin/subscription-payments"
-                className="text-primary font-bold hover:underline flex items-center space-x-0.5"
-              >
-                <span>Verify</span>
-                <ArrowUpRight className="w-3 h-3" />
-              </Link>
-            )}
-          </div>
-        </div>
 
-        {/* Payment Confirmation Rate */}
-        <div className="p-5 rounded-2xl border bg-card space-y-2 shadow-2xs">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Confirmation Rate</span>
-            <CheckCircle className="h-4 w-4 text-primary" />
+          {/* Payment Confirmation Rate */}
+          <div className="p-5 rounded-2xl border bg-card space-y-2 shadow-2xs">
+            <div className="flex items-center justify-between text-muted-foreground">
+              <span className="text-xs font-semibold">Confirmation Rate</span>
+              <CheckCircle className="h-4 w-4 text-primary" />
+            </div>
+            <p className="text-2xl sm:text-3xl font-extrabold text-foreground">
+              {summary.confirmationRate}%
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              {summary.confirmedCount} of {summary.totalTransactions} transactions approved
+              {summary.rejectedCount > 0 && ` (${summary.rejectedCount} rejected)`}
+            </p>
           </div>
-          <p className="text-2xl sm:text-3xl font-extrabold text-foreground">
-            {summary.confirmationRate}%
-          </p>
-          <p className="text-[11px] text-muted-foreground">
-            {summary.confirmedCount} of {summary.totalTransactions} transactions approved
-            {summary.rejectedCount > 0 && ` (${summary.rejectedCount} rejected)`}
-          </p>
-        </div>
 
-        {/* Average Order Value */}
-        <div className="p-5 rounded-2xl border bg-card space-y-2 shadow-2xs">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Avg. Order Value</span>
-            <TrendingUp className="h-4 w-4 text-teal-500" />
+          {/* Average Order Value */}
+          <div className="p-5 rounded-2xl border bg-card space-y-2 shadow-2xs">
+            <div className="flex items-center justify-between text-muted-foreground">
+              <span className="text-xs font-semibold">Avg. Order Value</span>
+              <TrendingUp className="h-4 w-4 text-teal-500" />
+            </div>
+            <p className="text-2xl sm:text-3xl font-extrabold text-foreground">
+              {summary.averageTransactionValue.toLocaleString()}{' '}
+              <span className="text-sm font-semibold text-muted-foreground">MMK</span>
+            </p>
+            <p className="text-[11px] text-muted-foreground">Per confirmed tier subscription</p>
           </div>
-          <p className="text-2xl sm:text-3xl font-extrabold text-foreground">
-            {summary.averageTransactionValue.toLocaleString()}{' '}
-            <span className="text-sm font-semibold text-muted-foreground">MMK</span>
-          </p>
-          <p className="text-[11px] text-muted-foreground">Per confirmed tier subscription</p>
         </div>
-      </div>
+      )}
 
       {/* Visual Analytics Breakdowns */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -473,11 +478,7 @@ export const PaymentReportsPage: React.FC = () => {
             </thead>
             <tbody className="divide-y">
               {isLoading ? (
-                <tr>
-                  <td colSpan={8} className="py-8 text-center text-muted-foreground">
-                    Loading payment audit log...
-                  </td>
-                </tr>
+                <TableSkeleton rows={5} cols={8} message="Loading payment audit log..." />
               ) : paginatedPayments.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-8 text-center text-muted-foreground">

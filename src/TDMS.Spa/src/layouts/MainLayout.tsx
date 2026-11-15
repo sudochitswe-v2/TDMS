@@ -16,6 +16,10 @@ import {
   X,
   BookOpen,
   Search,
+  Sparkles,
+  Home,
+  UserCheck,
+  ChevronRight
 } from 'lucide-react'
 
 export const MainLayout: React.FC = () => {
@@ -36,6 +40,18 @@ export const MainLayout: React.FC = () => {
     setMobileMenuOpen(false)
   }, [location.pathname])
 
+  // Prevent background body scroll when mobile slide drawer is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [mobileMenuOpen])
+
   // Handle click outside and Escape key to close profile dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -50,10 +66,11 @@ export const MainLayout: React.FC = () => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setProfileDropdownOpen(false)
+        setMobileMenuOpen(false)
       }
     }
 
-    if (profileDropdownOpen) {
+    if (profileDropdownOpen || mobileMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside)
       document.addEventListener('keydown', handleKeyDown)
     }
@@ -62,7 +79,7 @@ export const MainLayout: React.FC = () => {
       document.removeEventListener('mousedown', handleClickOutside)
       document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [profileDropdownOpen])
+  }, [profileDropdownOpen, mobileMenuOpen])
 
   useEffect(() => {
     if (darkMode) {
@@ -94,7 +111,14 @@ export const MainLayout: React.FC = () => {
     return '/account'
   }
 
-  const isActive = (path: string) => location.pathname === path
+  const isActive = (path: string) => {
+    if (path === '/') return location.pathname === '/'
+    return location.pathname.startsWith(path)
+  }
+
+  const isTutor = user?.roles?.includes('Tutor')
+  const isLearner = user?.roles?.includes('Learner') || user?.roles?.includes('ParentStudent') || !!user?.accountSubType
+  const isAdmin = user?.roles?.includes('SystemAdmin') || user?.roles?.includes('OperationAdmin') || hasPermission('view:menu:admin_panel')
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground transition-colors">
@@ -103,7 +127,7 @@ export const MainLayout: React.FC = () => {
         <div className="w-full flex h-16 items-center justify-between px-4 sm:px-6 gap-4">
           {/* Brand */}
           <Link to="/" className="inline-flex items-center font-bold text-xl text-primary shrink-0 group mr-4">
-            <GraduationCap className="h-7 w-7 text-primary shrink-0" />
+            <GraduationCap className="h-7 w-7 text-primary shrink-0 transition-transform group-hover:scale-105" />
             <div className="relative ml-2 flex items-center">
               <span className="tracking-tight text-xl font-bold">TDMS</span>
               <span
@@ -117,12 +141,12 @@ export const MainLayout: React.FC = () => {
             </div>
           </Link>
 
-          {/* Desktop Nav Links (Home button removed) */}
+          {/* Desktop Nav Links */}
           <nav className="hidden md:flex items-center space-x-5 lg:space-x-6 text-sm font-medium">
             <HasPermission permission="view:menu:find_tutors">
               <Link
                 to="/tutors"
-                className={`flex items-center space-x-1 transition hover:text-primary ${isActive('/tutors') ? 'text-primary font-semibold' : 'text-muted-foreground'}`}
+                className={`flex items-center space-x-1.5 transition hover:text-primary ${isActive('/tutors') ? 'text-primary font-semibold' : 'text-muted-foreground'}`}
               >
                 <Search className="h-4 w-4" />
                 <span>Find Tutors</span>
@@ -133,7 +157,7 @@ export const MainLayout: React.FC = () => {
             <HasPermission permission="view:menu:learner_account">
               <Link
                 to="/account"
-                className={`flex items-center space-x-1 transition hover:text-primary ${isActive('/account') ? 'text-primary font-semibold' : 'text-muted-foreground'}`}
+                className={`flex items-center space-x-1.5 transition hover:text-primary ${isActive('/account') ? 'text-primary font-semibold' : 'text-muted-foreground'}`}
               >
                 <BookOpen className="h-4 w-4" />
                 <span>My Requirements</span>
@@ -143,7 +167,7 @@ export const MainLayout: React.FC = () => {
             <HasPermission permission="view:menu:tutor_workspace">
               <Link
                 to="/tutor-studio"
-                className={`flex items-center space-x-1 transition hover:text-primary ${isActive('/tutor-studio') ? 'text-primary font-semibold' : 'text-muted-foreground'}`}
+                className={`flex items-center space-x-1.5 transition hover:text-primary ${isActive('/tutor-studio') ? 'text-primary font-semibold' : 'text-muted-foreground'}`}
               >
                 <GraduationCap className="h-4 w-4" />
                 <span>Tutor Studio</span>
@@ -153,7 +177,7 @@ export const MainLayout: React.FC = () => {
             <HasPermission permission="view:menu:messaging">
               <Link
                 to="/messages"
-                className={`flex items-center space-x-1 transition hover:text-primary ${isActive('/messages') ? 'text-primary font-semibold' : 'text-muted-foreground'}`}
+                className={`flex items-center space-x-1.5 transition hover:text-primary ${isActive('/messages') ? 'text-primary font-semibold' : 'text-muted-foreground'}`}
               >
                 <MessageSquare className="h-4 w-4" />
                 <span>Inbox</span>
@@ -163,7 +187,7 @@ export const MainLayout: React.FC = () => {
             <HasPermission permission="view:menu:feedback">
               <Link
                 to="/reviews"
-                className={`flex items-center space-x-1 transition hover:text-primary ${isActive('/reviews') ? 'text-primary font-semibold' : 'text-muted-foreground'}`}
+                className={`flex items-center space-x-1.5 transition hover:text-primary ${isActive('/reviews') ? 'text-primary font-semibold' : 'text-muted-foreground'}`}
               >
                 <Star className="h-4 w-4" />
                 <span>Feedback</span>
@@ -183,11 +207,10 @@ export const MainLayout: React.FC = () => {
                   aria-expanded={profileDropdownOpen}
                   aria-haspopup="true"
                   title={user.fullName || 'User Profile'}
-                  className={`flex items-center justify-center h-9 w-9 rounded-full border transition-all ${
-                    profileDropdownOpen
+                  className={`flex items-center justify-center h-9 w-9 rounded-full border transition-all ${profileDropdownOpen
                       ? 'border-primary ring-2 ring-primary/20 bg-primary/15 text-primary'
                       : 'border-border bg-secondary/60 text-foreground hover:bg-secondary hover:border-primary/40'
-                  }`}
+                    }`}
                 >
                   <User className="h-4.5 w-4.5 text-primary" />
                 </button>
@@ -234,8 +257,8 @@ export const MainLayout: React.FC = () => {
                           {user.roles?.includes('Tutor')
                             ? 'Edit Tutor Profile'
                             : user.roles?.includes('SystemAdmin') || user.roles?.includes('OperationAdmin')
-                            ? 'Admin System Management'
-                            : 'Edit Learner Profile'}
+                              ? 'Admin System Management'
+                              : 'Edit Learner Profile'}
                         </span>
                       </div>
                     </Link>
@@ -303,145 +326,506 @@ export const MainLayout: React.FC = () => {
               {darkMode ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4" />}
             </button>
 
-            {/* Mobile menu button */}
+            {/* Mobile menu trigger */}
             <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg border"
+              type="button"
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              aria-label="Toggle mobile navigation menu"
+              className="md:hidden p-2 rounded-lg border text-foreground hover:bg-secondary transition cursor-pointer active:scale-95"
             >
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>
+      </header>
 
-        {/* Mobile dropdown */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-b bg-background px-4 py-3 space-y-2">
-            <Link
-              to="/"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-1.5 text-sm font-medium"
-            >
-              Home
-            </Link>
-            <HasPermission permission="view:menu:find_tutors">
-              <Link
-                to="/tutors"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block py-1.5 text-sm font-medium"
-              >
-                Find Tutors
-              </Link>
-            </HasPermission>
-            <HasPermission permission="view:menu:learner_account">
-              <Link
-                to="/account"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block py-1.5 text-sm font-medium"
-              >
-                My Requirements
-              </Link>
-            </HasPermission>
-            <HasPermission permission="view:menu:tutor_workspace">
-              <Link
-                to="/tutor-studio"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block py-1.5 text-sm font-medium"
-              >
-                Tutor Studio
-              </Link>
-            </HasPermission>
-            <HasPermission permission="view:menu:messaging">
-              <Link
-                to="/messages"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block py-1.5 text-sm font-medium"
-              >
-                Inbox
-              </Link>
-            </HasPermission>
-            <HasPermission permission="view:menu:feedback">
-              <Link
-                to="/reviews"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block py-1.5 text-sm font-medium"
-              >
-                Feedback
-              </Link>
-            </HasPermission>
-            {hasPermission('view:menu:admin_panel') && (
-              <Link
-                to="/admin"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block py-1.5 text-sm font-medium text-blue-600 dark:text-blue-400"
-              >
-                Go to Admin Panel
-              </Link>
-            )}
+      {/* Mobile Slide-Over Navigation Drawer with Backdrop (outside header so backdrop-filter does not trap fixed inset-0) */}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-50 flex justify-end">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-hidden="true"
+          />
 
+          {/* Drawer Sheet */}
+          <div className="relative z-50 w-full max-w-xs sm:max-w-sm h-full bg-card border-l shadow-2xl flex flex-col p-5 overflow-y-auto animate-in slide-in-from-right duration-250">
+            {/* Drawer Header */}
+            <div className="flex items-center justify-between pb-4 border-b">
+              <Link
+                to="/"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center space-x-2 font-bold text-lg text-primary"
+              >
+                <GraduationCap className="h-6 w-6" />
+                <span className="tracking-tight">TDMS Platform</span>
+                <span
+                  className={`ml-1 px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wider rounded-full border leading-none ${getChannelBadgeStyle(
+                    appVersion.channel
+                  )}`}
+                >
+                  {appVersion.channel}
+                </span>
+              </Link>
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(false)}
+                aria-label="Close navigation drawer"
+                className="p-1.5 rounded-lg border text-muted-foreground hover:bg-secondary hover:text-foreground transition"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* User Identity Card (If logged in) */}
             {isAuthenticated && user && (
-              <div className="pt-2 border-t space-y-1">
-                <div className="px-1 py-1">
-                  <p className="text-xs font-bold text-foreground">{user.fullName}</p>
-                  <p className="text-[11px] text-muted-foreground">{user.email}</p>
+              <div className="my-4 p-3.5 rounded-2xl bg-secondary/30 border space-y-2">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-base shrink-0">
+                    {user.fullName?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-foreground truncate">{user.fullName}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {user.roles?.map((r) => (
+                    <span
+                      key={r}
+                      className="px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[10px] font-bold"
+                    >
+                      {r}
+                    </span>
+                  ))}
+                  {user.accountSubType && (
+                    <span className="px-2 py-0.5 rounded-md bg-secondary text-secondary-foreground text-[10px] font-semibold border">
+                      {user.accountSubType}
+                    </span>
+                  )}
                 </div>
                 <Link
                   to={getProfilePath()}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center space-x-2 py-1.5 text-sm font-medium hover:text-primary transition"
+                  className="mt-2 flex items-center justify-between text-xs font-semibold text-primary pt-1 hover:underline"
                 >
-                  <User className="h-4 w-4 text-primary" />
-                  <span>Profile</span>
+                  <span>Manage Workspace Profile</span>
+                  <ChevronRight className="h-3.5 w-3.5" />
                 </Link>
+              </div>
+            )}
+
+            {/* Primary Navigation Links */}
+            <div className="space-y-1 py-2 flex-1">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-2 pb-1">
+                Navigation
+              </p>
+
+              <Link
+                to="/"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition ${location.pathname === '/' ? 'bg-primary text-primary-foreground font-semibold shadow-xs' : 'hover:bg-secondary text-foreground'
+                  }`}
+              >
+                <Home className="h-4.5 w-4.5 shrink-0" />
+                <span>Home</span>
+              </Link>
+
+              <HasPermission permission="view:menu:find_tutors">
+                <Link
+                  to="/tutors"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition ${isActive('/tutors') ? 'bg-primary text-primary-foreground font-semibold shadow-xs' : 'hover:bg-secondary text-foreground'
+                    }`}
+                >
+                  <Search className="h-4.5 w-4.5 shrink-0" />
+                  <span>Find Tutors</span>
+                </Link>
+              </HasPermission>
+
+              <HasPermission permission="view:menu:learner_account">
+                <Link
+                  to="/account"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition ${isActive('/account') ? 'bg-primary text-primary-foreground font-semibold shadow-xs' : 'hover:bg-secondary text-foreground'
+                    }`}
+                >
+                  <BookOpen className="h-4.5 w-4.5 shrink-0" />
+                  <span>My Requirements</span>
+                </Link>
+              </HasPermission>
+
+              <HasPermission permission="view:menu:tutor_workspace">
+                <Link
+                  to="/tutor-studio"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition ${isActive('/tutor-studio') ? 'bg-primary text-primary-foreground font-semibold shadow-xs' : 'hover:bg-secondary text-foreground'
+                    }`}
+                >
+                  <GraduationCap className="h-4.5 w-4.5 shrink-0" />
+                  <span>Tutor Studio Workspace</span>
+                </Link>
+              </HasPermission>
+
+              <HasPermission permission="view:menu:messaging">
+                <Link
+                  to="/messages"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition ${isActive('/messages') ? 'bg-primary text-primary-foreground font-semibold shadow-xs' : 'hover:bg-secondary text-foreground'
+                    }`}
+                >
+                  <MessageSquare className="h-4.5 w-4.5 shrink-0" />
+                  <span>Inbox & Chats</span>
+                </Link>
+              </HasPermission>
+
+              <HasPermission permission="view:menu:feedback">
+                <Link
+                  to="/reviews"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition ${isActive('/reviews') ? 'bg-primary text-primary-foreground font-semibold shadow-xs' : 'hover:bg-secondary text-foreground'
+                    }`}
+                >
+                  <Star className="h-4.5 w-4.5 shrink-0" />
+                  <span>Feedback & Reviews</span>
+                </Link>
+              </HasPermission>
+
+              {hasPermission('view:menu:admin_panel') && (
+                <div className="pt-2">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-2 pb-1">
+                    Administration
+                  </p>
+                  <Link
+                    to="/admin"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition text-blue-600 dark:text-blue-400 ${isActive('/admin') ? 'bg-blue-500/15 font-semibold' : 'hover:bg-secondary'
+                      }`}
+                  >
+                    <ShieldCheck className="h-4.5 w-4.5 shrink-0" />
+                    <span>Admin Control Panel</span>
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Drawer Footer Actions */}
+            <div className="pt-4 border-t space-y-3">
+              {/* Theme Selector */}
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl border bg-secondary/30 hover:bg-secondary text-xs font-semibold transition"
+              >
+                <span className="flex items-center space-x-2">
+                  {darkMode ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-foreground" />}
+                  <span>{darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}</span>
+                </span>
+                <span className="text-[10px] font-mono uppercase text-muted-foreground">
+                  {darkMode ? 'DARK' : 'LIGHT'}
+                </span>
+              </button>
+
+              {isAuthenticated ? (
                 <button
                   type="button"
                   onClick={() => {
                     setMobileMenuOpen(false)
                     handleLogout()
                   }}
-                  className="flex items-center space-x-2 py-1.5 text-sm font-medium text-destructive hover:bg-destructive/10 w-full text-left"
+                  className="w-full flex items-center justify-center space-x-2 px-3 py-2.5 rounded-xl border border-destructive/30 text-destructive bg-destructive/10 hover:bg-destructive/20 text-xs font-bold transition shadow-2xs"
                 >
                   <LogOut className="h-4 w-4" />
-                  <span>Log Out</span>
+                  <span>Log Out of Session</span>
                 </button>
-              </div>
-            )}
+              ) : (
+                <div className="space-y-2">
+                  <Link
+                    to="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full flex items-center justify-center py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition shadow-xs"
+                  >
+                    Sign In
+                  </Link>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Link
+                      to="/register/learner"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center justify-center py-2 rounded-xl border text-center text-[11px] font-medium hover:bg-secondary transition"
+                    >
+                      Join as Student
+                    </Link>
+                    <Link
+                      to="/register/tutor"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center justify-center py-2 rounded-xl border text-center text-[11px] font-medium hover:bg-secondary transition"
+                    >
+                      Become a Tutor
+                    </Link>
+                  </div>
+                </div>
+              )}
 
-            {!isAuthenticated && (
-              <div className="pt-2 border-t space-y-1">
-                <Link
-                  to="/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block py-1.5 text-sm font-medium text-primary"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  to="/register/learner"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block py-1.5 text-sm font-medium text-foreground"
-                >
-                  Join as Student / Parent
-                </Link>
-                <Link
-                  to="/register/tutor"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block py-1.5 text-sm font-medium text-foreground"
-                >
-                  Register as Tutor
-                </Link>
+              <div className="text-center pt-2">
+                <p className="text-[10px] text-muted-foreground">
+                  TDMS v{appVersion.raw} &bull; {appVersion.channel} channel
+                </p>
               </div>
-            )}
+            </div>
           </div>
-        )}
-      </header>
+        </div>
+      )}
 
-      {/* Main Content Area */}
-      <main className="flex-1">
+      {/* Main Content Area - with bottom padding on mobile to clear bottom tab bar */}
+      <main className="flex-1 pb-20 md:pb-0">
         <Outlet />
       </main>
 
+      {/* App Mobile Bottom Navigation Bar (Persistent 1-Thumb Reachability) */}
+      <nav
+        aria-label="Mobile Navigation"
+        className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border shadow-lg md:hidden"
+      >
+        <div className="flex items-center justify-around h-16 px-1 safe-area-pb">
+          {isTutor ? (
+            <>
+              {/* Tutor Mobile Bottom Tabs */}
+              <Link
+                to="/tutor-studio"
+                className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-semibold transition active:scale-95 ${isActive('/tutor-studio') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+              >
+                <div className={`p-1 rounded-xl transition ${isActive('/tutor-studio') ? 'bg-primary/10' : ''}`}>
+                  <GraduationCap className="h-5 w-5" />
+                </div>
+                <span className="truncate">Studio</span>
+              </Link>
+
+              <Link
+                to="/tutors"
+                className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-semibold transition active:scale-95 ${isActive('/tutors') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+              >
+                <div className={`p-1 rounded-xl transition ${isActive('/tutors') ? 'bg-primary/10' : ''}`}>
+                  <Search className="h-5 w-5" />
+                </div>
+                <span className="truncate">Tutors</span>
+              </Link>
+
+              <Link
+                to="/messages"
+                className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-semibold transition active:scale-95 ${isActive('/messages') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+              >
+                <div className={`p-1 rounded-xl transition ${isActive('/messages') ? 'bg-primary/10' : ''}`}>
+                  <MessageSquare className="h-5 w-5" />
+                </div>
+                <span className="truncate">Inbox</span>
+              </Link>
+
+              <Link
+                to="/reviews"
+                className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-semibold transition active:scale-95 ${isActive('/reviews') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+              >
+                <div className={`p-1 rounded-xl transition ${isActive('/reviews') ? 'bg-primary/10' : ''}`}>
+                  <Star className="h-5 w-5" />
+                </div>
+                <span className="truncate">Feedback</span>
+              </Link>
+
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(true)}
+                className="flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-semibold text-muted-foreground hover:text-foreground active:scale-95 transition"
+              >
+                <div className="p-1 rounded-xl">
+                  <Menu className="h-5 w-5" />
+                </div>
+                <span className="truncate">Menu</span>
+              </button>
+            </>
+          ) : isLearner ? (
+            <>
+              {/* Student / Learner Mobile Bottom Tabs */}
+              <Link
+                to="/tutors"
+                className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-semibold transition active:scale-95 ${isActive('/tutors') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+              >
+                <div className={`p-1 rounded-xl transition ${isActive('/tutors') ? 'bg-primary/10' : ''}`}>
+                  <Search className="h-5 w-5" />
+                </div>
+                <span className="truncate">Find Tutors</span>
+              </Link>
+
+              <Link
+                to="/account"
+                className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-semibold transition active:scale-95 ${isActive('/account') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+              >
+                <div className={`p-1 rounded-xl transition ${isActive('/account') ? 'bg-primary/10' : ''}`}>
+                  <BookOpen className="h-5 w-5" />
+                </div>
+                <span className="truncate">Requirements</span>
+              </Link>
+
+              <Link
+                to="/messages"
+                className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-semibold transition active:scale-95 ${isActive('/messages') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+              >
+                <div className={`p-1 rounded-xl transition ${isActive('/messages') ? 'bg-primary/10' : ''}`}>
+                  <MessageSquare className="h-5 w-5" />
+                </div>
+                <span className="truncate">Inbox</span>
+              </Link>
+
+              <Link
+                to="/reviews"
+                className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-semibold transition active:scale-95 ${isActive('/reviews') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+              >
+                <div className={`p-1 rounded-xl transition ${isActive('/reviews') ? 'bg-primary/10' : ''}`}>
+                  <Star className="h-5 w-5" />
+                </div>
+                <span className="truncate">Feedback</span>
+              </Link>
+
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(true)}
+                className="flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-semibold text-muted-foreground hover:text-foreground active:scale-95 transition"
+              >
+                <div className="p-1 rounded-xl">
+                  <Menu className="h-5 w-5" />
+                </div>
+                <span className="truncate">Menu</span>
+              </button>
+            </>
+          ) : isAdmin ? (
+            <>
+              {/* Admin Mobile Bottom Tabs */}
+              <Link
+                to="/admin"
+                className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-semibold transition active:scale-95 ${isActive('/admin') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+              >
+                <div className={`p-1 rounded-xl transition ${isActive('/admin') ? 'bg-primary/10' : ''}`}>
+                  <ShieldCheck className="h-5 w-5" />
+                </div>
+                <span className="truncate">Admin</span>
+              </Link>
+
+              <Link
+                to="/tutors"
+                className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-semibold transition active:scale-95 ${isActive('/tutors') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+              >
+                <div className={`p-1 rounded-xl transition ${isActive('/tutors') ? 'bg-primary/10' : ''}`}>
+                  <Search className="h-5 w-5" />
+                </div>
+                <span className="truncate">Tutors</span>
+              </Link>
+
+              <Link
+                to="/messages"
+                className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-semibold transition active:scale-95 ${isActive('/messages') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+              >
+                <div className={`p-1 rounded-xl transition ${isActive('/messages') ? 'bg-primary/10' : ''}`}>
+                  <MessageSquare className="h-5 w-5" />
+                </div>
+                <span className="truncate">Inbox</span>
+              </Link>
+
+              <Link
+                to="/reviews"
+                className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-semibold transition active:scale-95 ${isActive('/reviews') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+              >
+                <div className={`p-1 rounded-xl transition ${isActive('/reviews') ? 'bg-primary/10' : ''}`}>
+                  <Star className="h-5 w-5" />
+                </div>
+                <span className="truncate">Feedback</span>
+              </Link>
+
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(true)}
+                className="flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-semibold text-muted-foreground hover:text-foreground active:scale-95 transition"
+              >
+                <div className="p-1 rounded-xl">
+                  <Menu className="h-5 w-5" />
+                </div>
+                <span className="truncate">Menu</span>
+              </button>
+            </>
+          ) : (
+            <>
+              {/* Guest / Unauthenticated Mobile Bottom Tabs */}
+              <Link
+                to="/"
+                className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-semibold transition active:scale-95 ${location.pathname === '/' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+              >
+                <div className={`p-1 rounded-xl transition ${location.pathname === '/' ? 'bg-primary/10' : ''}`}>
+                  <Home className="h-5 w-5" />
+                </div>
+                <span className="truncate">Home</span>
+              </Link>
+
+              <Link
+                to="/tutors"
+                className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-semibold transition active:scale-95 ${isActive('/tutors') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+              >
+                <div className={`p-1 rounded-xl transition ${isActive('/tutors') ? 'bg-primary/10' : ''}`}>
+                  <Search className="h-5 w-5" />
+                </div>
+                <span className="truncate">Tutors</span>
+              </Link>
+
+              <Link
+                to="/login"
+                className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-semibold transition active:scale-95 ${isActive('/login') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+              >
+                <div className={`p-1 rounded-xl transition ${isActive('/login') ? 'bg-primary/10' : ''}`}>
+                  <User className="h-5 w-5" />
+                </div>
+                <span className="truncate">Login</span>
+              </Link>
+
+              <Link
+                to="/register/learner"
+                className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-semibold transition active:scale-95 ${isActive('/register') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+              >
+                <div className={`p-1 rounded-xl transition ${isActive('/register') ? 'bg-primary/10' : ''}`}>
+                  <BookOpen className="h-5 w-5" />
+                </div>
+                <span className="truncate">Register</span>
+              </Link>
+
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(true)}
+                className="flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-semibold text-muted-foreground hover:text-foreground active:scale-95 transition"
+              >
+                <div className="p-1 rounded-xl">
+                  <Menu className="h-5 w-5" />
+                </div>
+                <span className="truncate">Menu</span>
+              </button>
+            </>
+          )}
+        </div>
+      </nav>
+
       {/* Footer */}
-      <footer className="border-t py-8 bg-secondary/30 text-xs text-muted-foreground mt-auto">
+      <footer className="border-t py-8 bg-secondary/30 text-xs text-muted-foreground mt-auto mb-16 md:mb-0">
         <div className="container mx-auto px-4 space-y-4">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex flex-wrap items-center gap-2">

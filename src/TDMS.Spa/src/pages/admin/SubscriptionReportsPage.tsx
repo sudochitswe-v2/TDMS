@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '../../lib/api'
 import { HasPermission } from '../../context/AuthContext'
 import { Pagination } from '../../components/Pagination'
+import { MetricsGridSkeleton, TableSkeleton } from '../../components/Loading'
 import {
   Crown,
   Users,
@@ -206,67 +207,71 @@ export const SubscriptionReportsPage: React.FC = () => {
 
 
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Paid Subscribers */}
-        <div className="p-5 rounded-2xl border bg-card space-y-2 shadow-2xs">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Active Paid Subscriptions</span>
-            <Crown className="h-4 w-4 text-amber-500" />
+      {isLoading ? (
+        <MetricsGridSkeleton count={4} />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Paid Subscribers */}
+          <div className="p-5 rounded-2xl border bg-card space-y-2 shadow-2xs">
+            <div className="flex items-center justify-between text-muted-foreground">
+              <span className="text-xs font-semibold">Active Paid Subscriptions</span>
+              <Crown className="h-4 w-4 text-amber-500" />
+            </div>
+            <p className="text-2xl sm:text-3xl font-extrabold text-foreground">
+              {summary.paidSubscribersCount}
+            </p>
+            <div className="flex items-center space-x-2 text-[11px] text-muted-foreground">
+              <span className="px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-600 font-bold border border-amber-500/20">
+                {summary.paidConversionRate}% Adoption
+              </span>
+              <span>of {summary.totalTutors} educators</span>
+            </div>
           </div>
-          <p className="text-2xl sm:text-3xl font-extrabold text-foreground">
-            {summary.paidSubscribersCount}
-          </p>
-          <div className="flex items-center space-x-2 text-[11px] text-muted-foreground">
-            <span className="px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-600 font-bold border border-amber-500/20">
-              {summary.paidConversionRate}% Adoption
-            </span>
-            <span>of {summary.totalTutors} educators</span>
-          </div>
-        </div>
 
-        {/* Free / Starter Tutors */}
-        <div className="p-5 rounded-2xl border bg-card space-y-2 shadow-2xs">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Free Starter Tutors</span>
-            <Users className="h-4 w-4 text-blue-500" />
+          {/* Free / Starter Tutors */}
+          <div className="p-5 rounded-2xl border bg-card space-y-2 shadow-2xs">
+            <div className="flex items-center justify-between text-muted-foreground">
+              <span className="text-xs font-semibold">Free Starter Tutors</span>
+              <Users className="h-4 w-4 text-blue-500" />
+            </div>
+            <p className="text-2xl sm:text-3xl font-extrabold text-foreground">
+              {summary.freeTierTutorsCount}
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              Educators on complimentary standard listing
+            </p>
           </div>
-          <p className="text-2xl sm:text-3xl font-extrabold text-foreground">
-            {summary.freeTierTutorsCount}
-          </p>
-          <p className="text-[11px] text-muted-foreground">
-            Educators on complimentary standard listing
-          </p>
-        </div>
 
-        {/* Upcoming Renewals */}
-        <div className="p-5 rounded-2xl border bg-card space-y-2 shadow-2xs">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Expiring Within 7 Days</span>
-            <Clock className="h-4 w-4 text-amber-500" />
+          {/* Upcoming Renewals */}
+          <div className="p-5 rounded-2xl border bg-card space-y-2 shadow-2xs">
+            <div className="flex items-center justify-between text-muted-foreground">
+              <span className="text-xs font-semibold">Expiring Within 7 Days</span>
+              <Clock className="h-4 w-4 text-amber-500" />
+            </div>
+            <p className="text-2xl sm:text-3xl font-extrabold text-foreground">
+              {summary.expiringSoonCount}
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              {summary.expiredCount > 0
+                ? `${summary.expiredCount} expired subscriptions logged`
+                : 'All other active subscriptions healthy'}
+            </p>
           </div>
-          <p className="text-2xl sm:text-3xl font-extrabold text-foreground">
-            {summary.expiringSoonCount}
-          </p>
-          <p className="text-[11px] text-muted-foreground">
-            {summary.expiredCount > 0
-              ? `${summary.expiredCount} expired subscriptions logged`
-              : 'All other active subscriptions healthy'}
-          </p>
-        </div>
 
-        {/* Total Lifetime Subscription Revenue */}
-        <div className="p-5 rounded-2xl border bg-card space-y-2 shadow-2xs">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Subscription Revenue</span>
-            <Zap className="h-4 w-4 text-emerald-500" />
+          {/* Total Lifetime Subscription Revenue */}
+          <div className="p-5 rounded-2xl border bg-card space-y-2 shadow-2xs">
+            <div className="flex items-center justify-between text-muted-foreground">
+              <span className="text-xs font-semibold">Subscription Revenue</span>
+              <Zap className="h-4 w-4 text-emerald-500" />
+            </div>
+            <p className="text-2xl sm:text-3xl font-extrabold text-foreground">
+              {summary.totalSubscriptionRevenue.toLocaleString()}{' '}
+              <span className="text-sm font-semibold text-muted-foreground">MMK</span>
+            </p>
+            <p className="text-[11px] text-muted-foreground">Cumulative realized revenue</p>
           </div>
-          <p className="text-2xl sm:text-3xl font-extrabold text-foreground">
-            {summary.totalSubscriptionRevenue.toLocaleString()}{' '}
-            <span className="text-sm font-semibold text-muted-foreground">MMK</span>
-          </p>
-          <p className="text-[11px] text-muted-foreground">Cumulative realized revenue</p>
         </div>
-      </div>
+      )}
 
       {/* Tier Adoption & Distribution Cards */}
       <div className="rounded-2xl border bg-card p-6 shadow-sm space-y-4">
@@ -444,11 +449,7 @@ export const SubscriptionReportsPage: React.FC = () => {
             </thead>
             <tbody className="divide-y">
               {isLoading ? (
-                <tr>
-                  <td colSpan={8} className="py-8 text-center text-muted-foreground">
-                    Loading subscription directory...
-                  </td>
-                </tr>
+                <TableSkeleton rows={5} cols={8} message="Loading subscription directory..." />
               ) : paginatedSubscriptions.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-8 text-center text-muted-foreground">

@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import { Pagination } from '../components/Pagination'
+import { CardSkeleton, LoadingSpinner } from '../components/Loading'
 import {
   Search,
   Filter,
@@ -337,8 +338,9 @@ export const TutorSearchPage: React.FC = () => {
           </div>
 
           {isLoading && (
-            <div className="py-20 text-center text-sm text-muted-foreground">
-              Loading tutors and calculating compatibility scores...
+            <div className="space-y-4 py-4">
+              <LoadingSpinner size="md" text="Loading tutors and calculating compatibility scores..." center />
+              <CardSkeleton count={6} variant="tutor" />
             </div>
           )}
 

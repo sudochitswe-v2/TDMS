@@ -2,6 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../../lib/api'
+import { MetricsGridSkeleton, LoadingSpinner } from '../../components/Loading'
 import {
   Users,
   CheckCircle2,
@@ -31,7 +32,7 @@ interface ReportsSummary {
 }
 
 export const AdminOverviewPage: React.FC = () => {
-  const { data } = useQuery<ReportsSummary>({
+  const { data, isLoading } = useQuery<ReportsSummary>({
     queryKey: ['adminOverviewReports'],
     queryFn: () => api.get('/api/operations/reports'),
   })
@@ -64,8 +65,14 @@ export const AdminOverviewPage: React.FC = () => {
       </div> */}
 
       {/* Metric Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Total Accounts */}
+      {isLoading ? (
+        <div className="space-y-4">
+          <LoadingSpinner size="sm" text="Aggregating platform operational metrics..." center />
+          <MetricsGridSkeleton count={6} />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Total Accounts */}
         <div className="p-5 rounded-2xl border bg-card space-y-2 shadow-2xs">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-semibold">Total Accounts</span>
@@ -130,16 +137,17 @@ export const AdminOverviewPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Student Feedback */}
-        <div className="p-5 rounded-2xl border bg-card space-y-2 shadow-2xs">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Student Feedback</span>
-            <Star className="h-4 w-4 text-amber-500" />
+          {/* Student Feedback */}
+          <div className="p-5 rounded-2xl border bg-card space-y-2 shadow-2xs">
+            <div className="flex items-center justify-between text-muted-foreground">
+              <span className="text-xs font-semibold">Student Feedback</span>
+              <Star className="h-4 w-4 text-amber-500" />
+            </div>
+            <p className="text-3xl font-extrabold">{stats.totalReviews}</p>
+            <p className="text-[11px] text-muted-foreground">Verified Star Ratings</p>
           </div>
-          <p className="text-3xl font-extrabold">{stats.totalReviews}</p>
-          <p className="text-[11px] text-muted-foreground">Verified Star Ratings</p>
         </div>
-      </div>
+      )}
     </div>
   )
 }

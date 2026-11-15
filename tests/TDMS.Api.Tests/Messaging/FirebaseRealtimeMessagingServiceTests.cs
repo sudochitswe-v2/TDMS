@@ -11,7 +11,8 @@ public class FirebaseRealtimeMessagingServiceTests
 {
     private class MockHttpMessageHandler : HttpMessageHandler
     {
-        public HttpRequestMessage? LastRequest { get; private set; }
+        public List<HttpRequestMessage> Requests { get; } = new();
+        public HttpRequestMessage? LastRequest => Requests.LastOrDefault();
         public string? LastRequestBody { get; private set; }
         public HttpResponseMessage ResponseToReturn { get; set; } = new(HttpStatusCode.OK)
         {
@@ -20,7 +21,7 @@ public class FirebaseRealtimeMessagingServiceTests
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            LastRequest = request;
+            Requests.Add(request);
             if (request.Content != null)
             {
                 LastRequestBody = await request.Content.ReadAsStringAsync(cancellationToken);
@@ -77,10 +78,10 @@ public class FirebaseRealtimeMessagingServiceTests
         var result = await service.SendMessageAsync("thread_456", "user_1", "Alex", "Hello Tutor!");
 
         // Assert
-        Assert.NotNull(handler.LastRequest);
-        Assert.Equal(HttpMethod.Put, handler.LastRequest.Method);
-        Assert.StartsWith("https://test-project-default-rtdb.firebaseio.com/threads/thread_456/messages/", handler.LastRequest.RequestUri?.ToString());
-        Assert.EndsWith(".json?auth=legacy-secret-key", handler.LastRequest.RequestUri?.ToString());
+        var putRequest = handler.Requests.FirstOrDefault(r => r.Method == HttpMethod.Put);
+        Assert.NotNull(putRequest);
+        Assert.StartsWith("https://test-project-default-rtdb.firebaseio.com/threads/thread_456/messages/", putRequest.RequestUri?.ToString());
+        Assert.EndsWith(".json?auth=legacy-secret-key", putRequest.RequestUri?.ToString());
         Assert.Equal("Alex", result.SenderName);
         Assert.Equal("Hello Tutor!", result.Text);
     }
@@ -131,5 +132,68 @@ public class FirebaseRealtimeMessagingServiceTests
         var service = new FirebaseRealtimeMessagingService(httpClient, config, NullLogger<FirebaseRealtimeMessagingService>.Instance);
 
         Assert.Equal("Production Firebase Realtime Database Provider (Firebase Admin SDK)", service.ProviderName);
+    }
+
+    [Fact]
+    public async Task TestRealFirebaseCredentialLoading()
+    {
+        var jsonPath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "src", "TDMS.Api", "firebase.service.json");
+        var fullPath = Path.GetFullPath(jsonPath);
+        Assert.True(File.Exists(fullPath), $"File should exist at {fullPath}");
+
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Firebase:DatabaseUrl"] = "https://tdms-svc-default-rtdb.asia-southeast1.firebasedatabase.app",
+                ["Firebase:CredentialFile"] = fullPath
+            })
+            .Build();
+
+        var service = new FirebaseRealtimeMessagingService(new HttpClient(), config, NullLogger<FirebaseRealtimeMessagingService>.Instance);
+
+        // Try getting a real message list or sending message
+        var messages = await service.GetMessagesAsync("test_thread");
+        Assert.NotNull(messages);
+    }
+
+    [Fact]
+    public async Task TestRealFirebaseCredentialLoading_WithRelativeFileName()
+    {
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Firebase:DatabaseUrl"] = "https://tdms-svc-default-rtdb.asia-southeast1.firebasedatabase.app",
+                ["Firebase:CredentialFile"] = "firebase.service.json"
+            })
+            .Build();
+
+        var service = new FirebaseRealtimeMessagingService(new HttpClient(), config, NullLogger<FirebaseRealtimeMessagingService>.Instance);
+
+        // This will test if relative filename works when running from test runner directory!
+        var sent = await service.SendMessageAsync("test_thread_integration", "user_1", "Test User", "Hello from integration test");
+        Assert.NotNull(sent);
+    }
+
+    [Fact]
+    public async Task SendAndGetMessagesAsync_RealFirebase_PersistsMessageAndReturnsIt()
+    {
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Firebase:DatabaseUrl"] = "https://tdms-svc-default-rtdb.asia-southeast1.firebasedatabase.app",
+                ["Firebase:CredentialFile"] = "firebase.service.json"
+            })
+            .Build();
+
+        var service = new FirebaseRealtimeMessagingService(new HttpClient(), config, NullLogger<FirebaseRealtimeMessagingService>.Instance);
+        var threadId = "thread_3ed91fd8397d4dea87f803fd9ca067aa";
+
+        var sent = await service.SendMessageAsync(threadId, "8a2e59ba-ccbd-407d-a732-01034da98a69", "Dr. Chit Swe", "Hello Aung Kaung! Your lesson is scheduled.");
+        Assert.NotNull(sent);
+        Assert.Equal("Dr. Chit Swe", sent.SenderName);
+
+        var messages = await service.GetMessagesAsync(threadId);
+        Assert.NotEmpty(messages);
+        Assert.Contains(messages, m => m.Id == sent.Id && m.Text == "Hello Aung Kaung! Your lesson is scheduled.");
     }
 }

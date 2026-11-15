@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using TDMS.Api.Abstructions;
 using TDMS.Api.Database;
 using TDMS.Api.Database.Entities;
+using TDMS.Api.Features.Messaging;
 
 namespace TDMS.Api.Features.Inquiries;
 
@@ -16,11 +17,13 @@ public class CreateInquiry
 {
     private readonly AppDbContext _context;
     private readonly ICurrentUser _currentUser;
+    private readonly IFirebaseMessagingService _messagingService;
 
-    public CreateInquiry(AppDbContext context, ICurrentUser currentUser)
+    public CreateInquiry(AppDbContext context, ICurrentUser currentUser, IFirebaseMessagingService messagingService)
     {
         _context = context;
         _currentUser = currentUser;
+        _messagingService = messagingService;
     }
 
     public async Task<ServiceResult<CreateInquiryResponse>> ExecuteAsync(CreateInquiryRequest request)
@@ -58,6 +61,30 @@ public class CreateInquiry
 
         _context.Inquiries.Add(inquiry);
         await _context.SaveChangesAsync();
+
+        // Initialize Firebase thread node and initial message immediately
+        try
+        {
+            await _messagingService.InitializeThreadAsync(
+                inquiry.FirebaseThreadId,
+                inquiry.LearnerUserId,
+                tutor.UserId,
+                inquiry.Id
+            );
+
+            var learnerUser = await _context.Users.FindAsync(_currentUser.UserId);
+            var senderName = learnerUser?.FullName ?? "Learner";
+            await _messagingService.SendMessageAsync(
+                inquiry.FirebaseThreadId,
+                _currentUser.UserId,
+                senderName,
+                inquiry.InitialRequirementSummary
+            );
+        }
+        catch
+        {
+            // Non-blocking fallback if Firebase network is unavailable
+        }
 
         return ServiceResult<CreateInquiryResponse>.Ok(new CreateInquiryResponse(
             inquiry.Id,

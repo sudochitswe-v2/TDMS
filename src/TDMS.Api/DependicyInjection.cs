@@ -72,6 +72,8 @@ public static class DependicyInjection
 
         // Auth Features
         services.AddScoped<Login>();
+        services.AddScoped<QuickLogin>();
+        services.AddScoped<GetQuickLoginUsers>();
         services.AddScoped<RegisterLearner>();
         services.AddScoped<RegisterTutor>();
         services.AddScoped<GetCurrentUser>();
@@ -125,7 +127,12 @@ public static class DependicyInjection
 
         // 5. Swappable Firebase Messaging Plugin
         var firebaseDatabaseUrl = configuration["Firebase:DatabaseUrl"];
-        if (!string.IsNullOrWhiteSpace(firebaseDatabaseUrl))
+        if (string.IsNullOrWhiteSpace(firebaseDatabaseUrl) && !string.Equals(configuration["Firebase:Provider"], "Mock", StringComparison.OrdinalIgnoreCase))
+        {
+            firebaseDatabaseUrl = "https://tdms-svc-default-rtdb.asia-southeast1.firebasedatabase.app";
+        }
+
+        if (!string.IsNullOrWhiteSpace(firebaseDatabaseUrl) && !string.Equals(firebaseDatabaseUrl, "MOCK", StringComparison.OrdinalIgnoreCase))
         {
             services.AddHttpClient<IFirebaseMessagingService, FirebaseRealtimeMessagingService>();
         }

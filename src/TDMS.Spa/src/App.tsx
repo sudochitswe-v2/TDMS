@@ -12,6 +12,7 @@ import { HomePage } from './pages/HomePage'
 import { TutorSearchPage } from './pages/TutorSearchPage'
 import { TutorDetailPage } from './pages/TutorDetailPage'
 import { LoginPage } from './pages/LoginPage'
+import { QuickLoginPage } from './pages/QuickLoginPage'
 import { RegisterLearnerPage } from './pages/RegisterLearnerPage'
 import { RegisterTutorPage } from './pages/RegisterTutorPage'
 import { LearnerAccountPage } from './pages/LearnerAccountPage'
@@ -31,6 +32,7 @@ import { SubscriptionReportsPage } from './pages/admin/SubscriptionReportsPage'
 import { UsersManagementPage } from './pages/admin/UsersManagementPage'
 import { RolesMatrixPage } from './pages/admin/RolesMatrixPage'
 import { SettingsPage } from './pages/admin/SettingsPage'
+import { WireframeGallery } from './pages/WireFrameGallery'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -51,9 +53,12 @@ export function App() {
             {/* Public and Consumer Application Routes */}
             <Route element={<MainLayout />}>
               <Route path="/" element={<HomePage />} />
+              <Route path="/wireframes" element={<WireframeGallery />} />
               <Route path="/tutors" element={<TutorSearchPage />} />
               <Route path="/tutors/:id" element={<TutorDetailPage />} />
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/quick-login" element={<QuickLoginPage />} />
+              <Route path="/dev-login" element={<Navigate to="/quick-login" replace />} />
               <Route path="/register/learner" element={<RegisterLearnerPage />} />
               <Route path="/register/tutor" element={<RegisterTutorPage />} />
               <Route path="/account" element={<LearnerAccountPage />} />

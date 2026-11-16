@@ -479,10 +479,10 @@ export const TutorStudioPage: React.FC = () => {
             <h1 className="text-2xl font-bold tracking-tight">Tutor Studio Workspace</h1>
             <span
               className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${tutor?.verificationStatus === 'Verified'
-                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                  : tutor?.verificationStatus === 'Rejected'
-                    ? 'bg-destructive/10 text-destructive'
-                    : 'bg-amber-500/10 text-amber-600'
+                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                : tutor?.verificationStatus === 'Rejected'
+                  ? 'bg-destructive/10 text-destructive'
+                  : 'bg-amber-500/10 text-amber-600'
                 }`}
             >
               Status: {tutor?.verificationStatus}
@@ -533,11 +533,10 @@ export const TutorStudioPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setActiveTab('teaching')}
-            className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition shrink-0 whitespace-nowrap active:scale-95 touch-manipulation cursor-pointer ${
-              activeTab === 'teaching'
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'bg-card border text-muted-foreground hover:bg-secondary hover:text-foreground'
-            }`}
+            className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition shrink-0 whitespace-nowrap active:scale-95 touch-manipulation cursor-pointer ${activeTab === 'teaching'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'bg-card border text-muted-foreground hover:bg-secondary hover:text-foreground'
+              }`}
           >
             <Calendar className="h-4 w-4" />
             <span className="hidden sm:inline">Teaching Info & Schedule</span>
@@ -547,11 +546,10 @@ export const TutorStudioPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setActiveTab('customization')}
-            className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition shrink-0 whitespace-nowrap active:scale-95 touch-manipulation cursor-pointer ${
-              activeTab === 'customization'
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'bg-card border text-muted-foreground hover:bg-secondary hover:text-foreground'
-            }`}
+            className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition shrink-0 whitespace-nowrap active:scale-95 touch-manipulation cursor-pointer ${activeTab === 'customization'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'bg-card border text-muted-foreground hover:bg-secondary hover:text-foreground'
+              }`}
           >
             <Palette className="h-4 w-4" />
             <span className="hidden sm:inline">Profile Customization & Visibility</span>
@@ -561,11 +559,10 @@ export const TutorStudioPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setActiveTab('verification')}
-            className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition shrink-0 whitespace-nowrap active:scale-95 touch-manipulation cursor-pointer ${
-              activeTab === 'verification'
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'bg-card border text-muted-foreground hover:bg-secondary hover:text-foreground'
-            }`}
+            className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition shrink-0 whitespace-nowrap active:scale-95 touch-manipulation cursor-pointer ${activeTab === 'verification'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'bg-card border text-muted-foreground hover:bg-secondary hover:text-foreground'
+              }`}
           >
             <ShieldCheck className="h-4 w-4" />
             <span className="hidden sm:inline">Verification & Credentials</span>
@@ -581,11 +578,10 @@ export const TutorStudioPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setActiveTab('subscription')}
-            className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition shrink-0 whitespace-nowrap active:scale-95 touch-manipulation cursor-pointer ${
-              activeTab === 'subscription'
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'bg-card border text-muted-foreground hover:bg-secondary hover:text-foreground'
-            }`}
+            className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition shrink-0 whitespace-nowrap active:scale-95 touch-manipulation cursor-pointer ${activeTab === 'subscription'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'bg-card border text-muted-foreground hover:bg-secondary hover:text-foreground'
+              }`}
           >
             <CreditCard className="h-4 w-4" />
             <span className="hidden sm:inline">Subscription Packages</span>
@@ -663,8 +659,8 @@ export const TutorStudioPage: React.FC = () => {
                     key={c.id}
                     onClick={() => toggleCategory(c.id)}
                     className={`p-3 rounded-xl border text-xs font-semibold text-left transition ${selected
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'bg-secondary/30 text-muted-foreground hover:bg-secondary'
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'bg-secondary/30 text-muted-foreground hover:bg-secondary'
                       }`}
                   >
                     <div className="flex items-center justify-between">
@@ -895,7 +891,7 @@ export const TutorStudioPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <h2 className="text-base font-bold flex items-center space-x-2">
                 <User className="h-4 w-4 text-primary" />
-                <span>Profile Photo (Stored as Base64)</span>
+                <span>Profile Photo</span>
               </h2>
               <span className="text-[11px] text-muted-foreground">PNG, JPG, WebP up to 2MB</span>
             </div>
@@ -970,7 +966,7 @@ export const TutorStudioPage: React.FC = () => {
             </div>
 
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Upload proof of your degrees, academic transcripts, or tutoring work history. Files are converted and stored securely as Base64 strings in the database.
+              Upload proof of your degrees, academic transcripts, or tutoring work history.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
@@ -1215,10 +1211,10 @@ export const TutorStudioPage: React.FC = () => {
                   <div
                     key={pkg.id}
                     className={`p-6 rounded-2xl border flex flex-col justify-between space-y-4 ${isCurrent
-                        ? 'border-primary bg-primary/5 shadow-md'
-                        : hasPending
-                          ? 'border-amber-500/40 bg-amber-500/5'
-                          : 'bg-card'
+                      ? 'border-primary bg-primary/5 shadow-md'
+                      : hasPending
+                        ? 'border-amber-500/40 bg-amber-500/5'
+                        : 'bg-card'
                       }`}
                   >
                     <div className="space-y-3">
@@ -1253,10 +1249,10 @@ export const TutorStudioPage: React.FC = () => {
                       disabled={isCurrent || hasPending || selectPackage.isPending}
                       onClick={() => handleOpenPurchase(pkg)}
                       className={`w-full py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer ${isCurrent
-                          ? 'bg-secondary text-muted-foreground cursor-default'
-                          : hasPending
-                            ? 'bg-amber-500/10 text-amber-600 border border-amber-500/30 cursor-default'
-                            : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
+                        ? 'bg-secondary text-muted-foreground cursor-default'
+                        : hasPending
+                          ? 'bg-amber-500/10 text-amber-600 border border-amber-500/30 cursor-default'
+                          : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
                         }`}
                     >
                       {isCurrent
@@ -1293,10 +1289,10 @@ export const TutorStudioPage: React.FC = () => {
                         <span className="font-semibold text-foreground">{p.packageName}</span>
                         <span
                           className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${p.status === 'Confirmed'
-                              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                              : p.status === 'Rejected'
-                                ? 'bg-destructive/10 text-destructive'
-                                : 'bg-amber-500/10 text-amber-600'
+                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                            : p.status === 'Rejected'
+                              ? 'bg-destructive/10 text-destructive'
+                              : 'bg-amber-500/10 text-amber-600'
                             }`}
                         >
                           {p.status}
